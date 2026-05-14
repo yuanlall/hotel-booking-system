@@ -230,5 +230,43 @@ export async function onRequestGet(context) {
     }
   }
   
+  // POST /api/order?action=updateStatus - 更新订单状态
+  if (body.action === 'updateStatus') {
+    try {
+      if (!env.FEISHU_APP_ID || !env.FEISHU_APP_SECRET || !env.FEISHU_BITABLE_APP_TOKEN || !env.FEISHU_BOOKING_TABLE_ID) {
+        return jsonResponse({ success: false, message: '飞书配置未完成' });
+      }
+      
+      const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
+      const recordId = body.recordId;
+      const newStatus = body.status === 'confirmed' ? '已确认' : body.status === 'cancelled' ? '已拒绝' : '待确认';
+      
+      const updateRes = await fetch(
+        `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BOOKING_TABLE_ID}/records/${recordId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            fields: { '订单状态': newStatus }
+          })
+        }
+      );
+      
+      const updateData = await updateRes.json();
+      if (updateData.code === 0) {
+        return jsonResponse({ success: true, message: '订单状态已更新' });
+      } else {
+        console.error('Feishu update error:', updateData.code, updateData.msg);
+        return jsonResponse({ success: false, message: '更新失败: ' + updateData.msg });
+      }
+    } catch(e) {
+      console.error('Update status error:', e.message || e);
+      return jsonResponse({ success: false, message: '服务器错误' }, 500);
+    }
+  }
+  
   return jsonResponse({ success: false, message: 'Unknown action' }, 400);
 }
