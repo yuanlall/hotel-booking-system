@@ -1,4 +1,4 @@
-// ========== Cloudflare Pages Function: 订单管理 ==========
+﻿// ========== Cloudflare Pages Function: 璁㈠崟绠＄悊 ==========
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -6,23 +6,23 @@ export async function onRequestPost(context) {
   try {
     const body = await request.json();
     
-    // 验证必填字段
+    // 楠岃瘉蹇呭～瀛楁
     const required = ['roomId', 'roomName', 'checkin', 'checkout', 'guestName', 'guestPhone'];
     for (const field of required) {
       if (!body[field]) {
-        return jsonResponse({ success: false, message: `缺少必填字段: ${field}` }, 400);
+        return jsonResponse({ success: false, message: `缂哄皯蹇呭～瀛楁: ${field}` }, 400);
       }
     }
     
-    // 生成订单ID
+    // 鐢熸垚璁㈠崟ID
     const orderId = `ORD${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
     const nights = Math.ceil((new Date(body.checkout) - new Date(body.checkin)) / (1000*60*60*24));
     const submittedAt = new Date().toLocaleString('zh-CN');
     
-    // 订单数据
+    // 璁㈠崟鏁版嵁
     const order = {
       id: orderId,
-      hotel: body.hotel || '香江国际酒店',
+      hotel: body.hotel || '棣欐睙鍥介檯閰掑簵',
       roomId: body.roomId,
       roomName: body.roomName,
       roomPrice: body.roomPrice,
@@ -40,25 +40,25 @@ export async function onRequestPost(context) {
       ip: request.headers.get('cf-connecting-ip') || 'unknown'
     };
     
-    // ===== 1. 企业微信通知 =====
+    // ===== 1. 浼佷笟寰俊閫氱煡 =====
     let wecomOk = false;
     if (env.WECOM_WEBHOOK_URL) {
       try {
         const wecomMessage = {
           msgtype: 'markdown',
           markdown: {
-            content: `🏨 **新订单通知**\n\n` +
-              `📋 订单号：${orderId}\n` +
-              `🏠 酒店：${order.hotel}\n` +
-              `🛏️ 房型：${order.roomName}\n` +
-              `📅 入住：${body.checkin}\n` +
-              `📅 离店：${body.checkout}（${nights}晚）\n` +
-              `👤 客人：${body.guestName}\n` +
-              `📱 手机：${body.guestPhone}\n` +
-              `💰 实付：¥${body.finalTotal}\n` +
-              `💬 备注：${body.note || '无'}\n` +
-              `⏰ 提交：${submittedAt}\n\n` +
-              `请及时确认订单！📞`
+            content: `馃彣 **鏂拌鍗曢€氱煡**\n\n` +
+              `馃搵 璁㈠崟鍙凤細${orderId}\n` +
+              `馃彔 閰掑簵锛?{order.hotel}\n` +
+              `馃洀锔?鎴垮瀷锛?{order.roomName}\n` +
+              `馃搮 鍏ヤ綇锛?{body.checkin}\n` +
+              `馃搮 绂诲簵锛?{body.checkout}锛?{nights}鏅氾級\n` +
+              `馃懁 瀹汉锛?{body.guestName}\n` +
+              `馃摫 鎵嬫満锛?{body.guestPhone}\n` +
+              `馃挵 瀹炰粯锛毬?{body.finalTotal}\n` +
+              `馃挰 澶囨敞锛?{body.note || '鏃?}\n` +
+              `鈴?鎻愪氦锛?{submittedAt}\n\n` +
+              `璇峰強鏃剁‘璁よ鍗曪紒馃摓`
           }
         };
         
@@ -75,14 +75,14 @@ export async function onRequestPost(context) {
       }
     }
     
-    // ===== 2. 飞书多维表格存储（预订订单）=====
+    // ===== 2. 椋炰功澶氱淮琛ㄦ牸瀛樺偍锛堥璁㈣鍗曪級=====
     let feishuOk = false;
-    if (env.FEISHU_APP_ID && env.FEISHU_APP_SECRET && env.FEISHU_BITABLE_APP_TOKEN && env.FEISHU_BITABLE_TABLE_ID) {
+    if (env.FEISHU_APP_ID && env.FEISHU_APP_SECRET && env.FEISHU_BITABLE_APP_TOKEN && env.FEISHU_BOOKING_TABLE_ID) {
       try {
         const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
         
         const addRes = await fetch(
-          `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BITABLE_TABLE_ID}/records`,
+          `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BOOKING_TABLE_ID}/records`,
           {
             method: 'POST',
             headers: {
@@ -91,18 +91,18 @@ export async function onRequestPost(context) {
             },
             body: JSON.stringify({
               fields: {
-                '订单号': orderId,
-                '酒店名称': order.hotel,
-                '房型': order.roomName,
-                '入住日期': body.checkin,
-                '离店日期': body.checkout,
-                '入住天数': nights,
-                '入住人': order.guestName,
-                '手机号': order.guestPhone,
-                '备注': order.note,
-                '实付金额': order.finalTotal,
-                '订单状态': '待确认',
-                '提交时间': submittedAt
+                '璁㈠崟鍙?: orderId,
+                '閰掑簵鍚嶇О': order.hotel,
+                '鎴垮瀷': order.roomName,
+                '鍏ヤ綇鏃ユ湡': body.checkin,
+                '绂诲簵鏃ユ湡': body.checkout,
+                '鍏ヤ綇澶╂暟': nights,
+                '鍏ヤ綇浜?: order.guestName,
+                '鎵嬫満鍙?: order.guestPhone,
+                '澶囨敞': order.note,
+                '瀹炰粯閲戦': order.finalTotal,
+                '璁㈠崟鐘舵€?: '寰呯‘璁?,
+                '鎻愪氦鏃堕棿': submittedAt
               }
             })
           }
@@ -117,17 +117,17 @@ export async function onRequestPost(context) {
     return jsonResponse({
       success: true,
       orderId: orderId,
-      message: '订单提交成功，商家将尽快确认',
+      message: '璁㈠崟鎻愪氦鎴愬姛锛屽晢瀹跺皢灏藉揩纭',
       notify: { wecom: wecomOk, feishu: feishuOk }
     });
     
   } catch(e) {
     console.error('Order submit error:', e);
-    return jsonResponse({ success: false, message: '服务器错误，请重试' }, 500);
+    return jsonResponse({ success: false, message: '鏈嶅姟鍣ㄩ敊璇紝璇烽噸璇? }, 500);
   }
 }
 
-// GET: 查询订单列表（商家后台）
+// GET: 鏌ヨ璁㈠崟鍒楄〃锛堝晢瀹跺悗鍙帮級
 export async function onRequestGet(context) {
   const { env, request } = context;
   const url = new URL(request.url);
@@ -140,24 +140,23 @@ export async function onRequestGet(context) {
   return jsonResponse({ success: false, message: 'Unknown action' }, 400);
 }
 
-// ===== 读取订单列表（GET /api/orders）=====
+// ===== 璇诲彇璁㈠崟鍒楄〃锛圙ET /api/orders锛?====
 export async function onRequest(context) {
   const { env, request } = context;
   const url = new URL(request.url);
   
-  // 只处理 GET 请求的列表查询
-  if (request.method === 'GET' && url.pathname === '/api/orders') {
+  // 鍙鐞?GET 璇锋眰鐨勫垪琛ㄦ煡璇?  if (request.method === 'GET' && url.pathname === '/api/orders') {
     try {
-      if (!env.FEISHU_APP_ID || !env.FEISHU_APP_SECRET || !env.FEISHU_BITABLE_APP_TOKEN || !env.FEISHU_BITABLE_TABLE_ID) {
-        return jsonResponse({ success: false, message: '飞书配置未完成', orders: [] }, 200);
+      if (!env.FEISHU_APP_ID || !env.FEISHU_APP_SECRET || !env.FEISHU_BITABLE_APP_TOKEN || !env.FEISHU_BOOKING_TABLE_ID) {
+        return jsonResponse({ success: false, message: '椋炰功閰嶇疆鏈畬鎴?, orders: [] }, 200);
       }
       
-      // 获取 access_token
+      // 鑾峰彇 access_token
       const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
       
-      // 查询最近的订单（最多50条）
+      // 鏌ヨ鏈€杩戠殑璁㈠崟锛堟渶澶?0鏉★級
       const listRes = await fetch(
-        `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BITABLE_TABLE_ID}/records?page_size=50&sort=-created_time`,
+        `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BOOKING_TABLE_ID}/records?page_size=50&sort=-created_time`,
         {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         }
@@ -166,26 +165,25 @@ export async function onRequest(context) {
       const listData = await listRes.json();
       
       if (listData.code !== 0) {
-        return jsonResponse({ success: false, message: '读取飞书失败', orders: [] }, 200);
+        return jsonResponse({ success: false, message: '璇诲彇椋炰功澶辫触', orders: [] }, 200);
       }
       
-      // 转换飞书记录为前端格式
-      const orders = (listData.data.items || []).map(item => {
+      // 杞崲椋炰功璁板綍涓哄墠绔牸寮?      const orders = (listData.data.items || []).map(item => {
         const f = item.fields;
         return {
-          id: f['订单号'] || item.record_id,
-          hotel: f['酒店名称'] || '',
-          roomName: f['房型'] || '',
-          checkin: f['入住日期'] || '',
-          checkout: f['离店日期'] || '',
-          nights: f['入住天数'] || 1,
-          guestName: f['入住人'] || '',
-          guestPhone: f['手机号'] || '',
-          note: f['备注'] || '',
-          finalTotal: f['实付金额'] || 0,
-          status: f['订单状态'] === '已确认' ? 'confirmed' : f['订单状态'] === '已拒绝' ? 'cancelled' : 'pending',
-          statusText: f['订单状态'] || '待确认',
-          submittedAt: f['提交时间'] || ''
+          id: f['璁㈠崟鍙?] || item.record_id,
+          hotel: f['閰掑簵鍚嶇О'] || '',
+          roomName: f['鎴垮瀷'] || '',
+          checkin: f['鍏ヤ綇鏃ユ湡'] || '',
+          checkout: f['绂诲簵鏃ユ湡'] || '',
+          nights: f['鍏ヤ綇澶╂暟'] || 1,
+          guestName: f['鍏ヤ綇浜?] || '',
+          guestPhone: f['鎵嬫満鍙?] || '',
+          note: f['澶囨敞'] || '',
+          finalTotal: f['瀹炰粯閲戦'] || 0,
+          status: f['璁㈠崟鐘舵€?] === '宸茬‘璁? ? 'confirmed' : f['璁㈠崟鐘舵€?] === '宸叉嫆缁? ? 'cancelled' : 'pending',
+          statusText: f['璁㈠崟鐘舵€?] || '寰呯‘璁?,
+          submittedAt: f['鎻愪氦鏃堕棿'] || ''
         };
       });
       
@@ -193,22 +191,22 @@ export async function onRequest(context) {
       
     } catch(e) {
       console.error('Orders list error:', e);
-      return jsonResponse({ success: false, message: '服务器错误', orders: [] }, 200);
+      return jsonResponse({ success: false, message: '鏈嶅姟鍣ㄩ敊璇?, orders: [] }, 200);
     }
   }
   
-  // POST 到 /api/orders
+  // POST 鍒?/api/orders
   if (request.method === 'POST' && url.pathname === '/api/orders') {
     const body = await request.json();
     
-    // 处理订单确认/取消
+    // 澶勭悊璁㈠崟纭/鍙栨秷
     if (body.action === 'updateStatus' && body.recordId) {
       try {
         const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
-        const statusMap = { confirmed: '已确认', cancelled: '已拒绝', pending: '待确认' };
+        const statusMap = { confirmed: '宸茬‘璁?, cancelled: '宸叉嫆缁?, pending: '寰呯‘璁? };
         
         const updateRes = await fetch(
-          `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BITABLE_TABLE_ID}/records/${body.recordId}`,
+          `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BOOKING_TABLE_ID}/records/${body.recordId}`,
           {
             method: 'PUT',
             headers: {
@@ -217,7 +215,7 @@ export async function onRequest(context) {
             },
             body: JSON.stringify({
               fields: {
-                '订单状态': statusMap[body.status] || body.status
+                '璁㈠崟鐘舵€?: statusMap[body.status] || body.status
               }
             })
           }
@@ -226,11 +224,11 @@ export async function onRequest(context) {
         const updateData = await updateRes.json();
         return jsonResponse({ success: updateData.code === 0, message: updateData.msg });
       } catch(e) {
-        return jsonResponse({ success: false, message: '更新失败' }, 500);
+        return jsonResponse({ success: false, message: '鏇存柊澶辫触' }, 500);
       }
     }
     
-    // 新建订单
+    // 鏂板缓璁㈠崟
     return onRequestPost(context);
   }
   
@@ -238,7 +236,7 @@ export async function onRequest(context) {
   return jsonResponse({ success: false, message: 'Not found' }, 404);
 }
 
-// ===== 辅助函数 =====
+// ===== 杈呭姪鍑芥暟 =====
 async function getFeishuToken(appId, appSecret) {
   const res = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
     method: 'POST',
