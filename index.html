@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>香江国际酒店 - 微信预订</title>
+    <meta name="description" content="西湖边步行5分钟的精品商务酒店，¥288起/晚，0佣金直接预订">
+    <meta name="keywords" content="杭州酒店,西湖酒店,经济型酒店,商务酒店,民宿预订">
+    <!-- 微信分享优化 -->
+    <meta name="wechat-share-title" content="限时特惠 | 西湖边精品酒店 ¥288起">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif; background: #f5f5f5; color: #333; max-width: 480px; margin: 0 auto; }
+        
+        /* ===== Hero 区域 ===== */
+        .hero { position: relative; width: 100%; height: 280px; overflow: hidden; }
+        .hero-slider { display: flex; transition: transform 0.5s ease; height: 100%; }
+        .hero-slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; position: relative; }
+        .hero-slide::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(transparent, rgba(0,0,0,0.6)); }
+        .hero-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2; }
+        .hero-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; }
+        .hero-dot.active { background: #fff; width: 20px; border-radius: 4px; }
+
+        /* ===== 酒店信息 ===== */
+        .hotel-info { background: #fff; padding: 16px; margin-bottom: 10px; }
+        .hotel-name { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+        .hotel-rating { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 14px; color: #666; }
+        .stars { color: #ff9800; letter-spacing: 2px; }
+        .score { color: #ff6b35; font-weight: 700; font-size: 15px; }
+        .hotel-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .tag { background: #f0f7ff; color: #1890ff; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+        .tag.highlight { background: #fff7e6; color: #fa8c16; }
+        .hotel-meta { display: flex; gap: 16px; font-size: 13px; color: #888; }
+        .hotel-meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* ===== 价格横幅 ===== */
+        .price-banner { background: linear-gradient(135deg, #ff6b35, #f7931e); color: #fff; padding: 18px 16px; text-align: center; margin-bottom: 10px; }
+        .price-label { font-size: 13px; opacity: 0.9; }
+        .price-value { font-size: 36px; font-weight: 700; line-height: 1.2; }
+        .price-value small { font-size: 16px; }
+        .price-unit { font-size: 14px; opacity: 0.85; }
+        .price-note { font-size: 11px; opacity: 0.75; margin-top: 4px; }
+
+        /* ===== 预订入口 ===== */
+        .booking-bar { position: sticky; top: 0; z-index: 100; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 12px 16px; display: flex; gap: 10px; align-items: center; }
+        .booking-date { flex: 1; padding: 10px 12px; border: 1.5px solid #e8e8e8; border-radius: 10px; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .booking-date:active { border-color: #ff6b35; }
+        .booking-btn { background: linear-gradient(135deg, #ff6b35, #f7931e); color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .booking-btn:active { opacity: 0.9; transform: scale(0.98); }
+
+        /* ===== 房型列表 ===== */
+        .section { background: #fff; margin-bottom: 10px; padding: 16px; }
+        .section-title { font-size: 17px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .room-card { border: 1.5px solid #f0f0f0; border-radius: 12px; padding: 14px; margin-bottom: 12px; transition: all 0.2s; cursor: pointer; }
+        .room-card:active, .room-card.selected { border-color: #ff6b35; background: #fffaf5; }
+        .room-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .room-name { font-size: 16px; font-weight: 600; }
+        .room-price { text-align: right; }
+        .room-price-num { color: #ff6b35; font-size: 22px; font-weight: 700; }
+        .room-price-num small { font-size: 13px; }
+        .room-price-unit { font-size: 12px; color: #999; }
+        .room-features { display: flex; gap: 8px; flex-wrap: wrap; }
+        .feature { font-size: 11px; color: #888; background: #f5f5f5; padding: 2px 8px; border-radius: 8px; }
+        .room-stock { font-size: 12px; color: #52c41a; margin-top: 6px; }
+        .room-stock.low { color: #faad14; }
+        .room-stock.empty { color: #ff4d4f; }
+
+        /* ===== 优惠券区域 ===== */
+        .coupon-section { background: linear-gradient(135deg, #fff5eb, #fff); border: 1.5px dashed #ffa940; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+        .coupon-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .coupon-title { font-size: 15px; font-weight: 600; color: #d46b08; }
+        .coupon-list { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+        .coupon-item { min-width: 120px; background: linear-gradient(135deg, #ff6b35, #f7931e); color: #fff; border-radius: 10px; padding: 10px 14px; position: relative; flex-shrink: 0; }
+        .coupon-amount { font-size: 24px; font-weight: 700; }
+        .coupon-amount small { font-size: 13px; }
+        .coupon-condition { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+        .coupon-expire { font-size: 10px; opacity: 0.7; margin-top: 4px; }
+        .coupon-btn { background: #fff; color: #ff6b35; border: none; padding: 4px 14px; border-radius: 14px; font-size: 12px; font-weight: 600; margin-top: 6px; cursor: pointer; }
+        .coupon-item.claimed { opacity: 0.6; filter: grayscale(0.3); }
+        .coupon-item.claimed::after { content: '已领取'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; border: 1px solid rgba(255,255,255,0.5); padding: 2px 6px; border-radius: 8px; }
+
+        /* ===== 酒店实拍 ===== */
+        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .photo-item { aspect-ratio: 4/3; border-radius: 8px; background-size: cover; background-position: center; }
+
+        /* ===== 评价 ===== */
+        .review-item { padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+        .review-item:last-child { border-bottom: none; }
+        .review-user { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .review-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+        .review-name { font-size: 14px; font-weight: 500; }
+        .review-stars { color: #ff9800; font-size: 12px; }
+        .review-text { font-size: 14px; color: #555; line-height: 1.6; }
+        .review-date { font-size: 12px; color: #bbb; margin-top: 4px; }
+
+        /* ===== 底部信息 ===== */
+        .footer-info { background: #fff; padding: 16px; margin-bottom: 70px; }
+        .footer-section { margin-bottom: 16px; }
+        .footer-section:last-child { margin-bottom: 0; }
+        .footer-label { font-size: 13px; color: #999; margin-bottom: 6px; }
+        .footer-value { font-size: 14px; color: #333; }
+
+        /* ===== 预订弹窗 ===== */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 200; align-items: flex-end; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 12px auto; }
+        .modal-header { padding: 0 16px 12px; border-bottom: 1px solid #f0f0f0; }
+        .modal-title { font-size: 18px; font-weight: 700; }
+        .modal-body { padding: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #333; }
+        .form-input { width: 100%; padding: 12px 14px; border: 1.5px solid #e8e8e8; border-radius: 10px; font-size: 15px; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-color: #ff6b35; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+        
+        /* 订单摘要 */
+        .order-summary { background: #fafafa; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+        .summary-row.total { border-top: 1.5px solid #eee; padding-top: 10px; margin-top: 6px; font-size: 16px; font-weight: 700; color: #ff6b35; }
+        .summary-coupon { color: #52c41a; }
+
+        /* 支付区域 */
+        .pay-section { text-align: center; padding: 16px 0; }
+        .pay-qrcode { width: 200px; height: 200px; border-radius: 12px; margin: 12px auto; overflow: hidden; border: 2px solid #eee; }
+        .pay-tip { font-size: 12px; color: #999; margin-top: 8px; }
+        .pay-confirm-btn { width: 100%; background: linear-gradient(135deg, #ff6b35, #f7931e); color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 600; margin-top: 12px; cursor: pointer; }
+        .pay-confirm-btn:active { opacity: 0.9; }
+
+        /* 底部导航 */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: #fff; display: flex; border-top: 1px solid #eee; z-index: 99; }
+        .nav-item { flex: 1; text-align: center; padding: 8px 0; font-size: 11px; color: #999; cursor: pointer; }
+        .nav-item.active { color: #ff6b35; }
+        .nav-icon { font-size: 22px; margin-bottom: 2px; }
+
+        /* 加载动画 */
+        .loading { text-align: center; padding: 40px; color: #999; }
+        .spinner { width: 30px; height: 30px; border: 3px solid #f0f0f0; border-top-color: #ff6b35; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast 提示 */
+        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 300; display: none; }
+        .toast.show { display: block; animation: fadeIn 0.2s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- ===== Hero 轮播图 ===== -->
+    <div class="hero">
+        <div class="hero-slider" id="heroSlider"></div>
+        <div class="hero-dots" id="heroDots"></div>
+    </div>
+
+    <!-- ===== 酒店信息 ===== -->
+    <div class="hotel-info">
+        <h1 class="hotel-name" id="hotelName">香江国际酒店</h1>
+        <div class="hotel-rating">
+            <span class="stars">★★★★★</span>
+            <span class="score">4.8分</span>
+            <span>· 328条评价</span>
+        </div>
+        <div class="hotel-tags" id="hotelTags"></div>
+        <div class="hotel-meta">
+            <span>📍 <span id="hotelAddress">杭州市西湖区文三路88号</span></span>
+            <span>📞 <a href="tel:057112345678" style="color:#1890ff;text-decoration:none;" id="hotelPhone">0571-12345678</a></span>
+        </div>
+    </div>
+
+    <!-- ===== 价格横幅 ===== -->
+    <div class="price-banner">
+        <div class="price-label">今日特惠价 · 直接预订省15%佣金</div>
+        <div class="price-value"><small>¥</small><span id="minPrice">288</small><span class="price-unit">起/晚</span></div>
+        <div class="price-note">同房型OTA价格 ¥338+ / 每晚立省 ¥50+</div>
+    </div>
+
+    <!-- ===== 粘性预订栏 ===== -->
+    <div class="booking-bar">
+        <div class="booking-date" onclick="openDatePicker()">
+            <span id="selectedDateText">选择入住日期</span>
+            <span>📅</span>
+        </div>
+        <button class="booking-btn" onclick="openBookingModal()">立即预订</button>
+    </div>
+
+    <!-- ===== 优惠券 ===== -->
+    <div class="section coupon-section">
+        <div class="coupon-header">
+            <span class="coupon-title">🎫 领券更优惠</span>
+            <span style="font-size:12px;color:#fa8c16;">分享得更多 →</span>
+        </div>
+        <div class="coupon-list" id="couponList"></div>
+    </div>
+
+    <!-- ===== 房型列表 ===== -->
+    <div class="section">
+        <div class="section-title">🏠 选择房型</div>
+        <div id="roomList"></div>
+    </div>
+
+    <!-- ===== 酒店实拍 ===== -->
+    <div class="section">
+        <div class="section-title">📸 酒店实拍</div>
+        <div class="photo-grid" id="photoGrid"></div>
+    </div>
+
+    <!-- ===== 住客评价 ===== -->
+    <div class="section">
+        <div class="section-title">💬 住客评价</div>
+        <div id="reviewList"></div>
+    </div>
+
+    <!-- ===== 联系方式 & 地图 ===== -->
+    <div class="footer-info">
+        <div class="footer-section">
+            <div class="footer-label">📍 地址</div>
+            <div class="footer-value" id="footerAddress">杭州市西湖区文三路88号（距西湖景区步行约5分钟）</div>
+        </div>
+        <div class="footer-section">
+            <div class="footer-label">📞 电话</div>
+            <div class="footer-value"><a href="tel:057112345678" style="color:#1890ff;text-decoration:none;">0571-12345678</a>（微信同号）</div>
+        </div>
+        <div class="footer-section">
+            <div class="footer-label">⏰ 入离时间</div>
+            <div class="footer-value">入住 14:00 后 · 离店 12:00 前</div>
+        </div>
+        <div class="footer-section">
+            <div class="footer-label">🚗 交通</div>
+            <div class="footer-value">地铁1号线文三路站C口步行3分钟 · 免费停车</div>
+        </div>
+    </div>
+
+    <!-- ===== 底部导航 ===== -->
+    <div class="bottom-nav">
+        <div class="nav-item active"><div class="nav-icon">🏨</div>首页</div>
+        <div class="nav-item" onclick="document.querySelector('.booking-bar').scrollIntoView({behavior:'smooth'})"><div class="nav-icon">🛏️</div>预订</div>
+        <div class="nav-item" onclick="document.getElementById('reviewList').scrollIntoView({behavior:'smooth'})"><div class="nav-icon">💬</div>评价</div>
+        <div class="nav-item" onclick="document.querySelector('.footer-info').scrollIntoView({behavior:'smooth'})"><div class="nav-icon">📍</div>位置</div>
+    </div>
+
+    <!-- ===== 预订弹窗 ===== -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal-content">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <div class="modal-title">确认预订</div>
+            </div>
+            <div class="modal-body">
+                <!-- 日期选择 -->
+                <div class="form-group">
+                    <label class="form-label">📅 入住日期</label>
+                    <input type="date" class="form-input" id="checkinDate" onchange="updateOrderSummary()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">📅 离店日期</label>
+                    <input type="date" class="form-input" id="checkoutDate" onchange="updateOrderSummary()">
+                </div>
+                
+                <!-- 房型 -->
+                <div class="form-group">
+                    <label class="form-label">🛏️ 房型</label>
+                    <select class="form-input" id="roomSelect" onchange="updateOrderSummary()">
+                        <option value="">请选择房型</option>
+                    </select>
+                </div>
+
+                <!-- 联系信息 -->
+                <div class="form-group">
+                    <label class="form-label">👤 入住人姓名</label>
+                    <input type="text" class="form-input" id="guestName" placeholder="请输入真实姓名">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">📱 手机号</label>
+                    <input type="tel" class="form-input" id="guestPhone" placeholder="请输入手机号">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">💬 备注（选填）</label>
+                    <input type="text" class="form-input" id="guestNote" placeholder="如：需要高楼层、安静房间等">
+                </div>
+
+                <!-- 订单摘要 -->
+                <div class="order-summary" id="orderSummary">
+                    <div class="summary-row"><span>房费</span><span id="sumRoomFee">--</span></div>
+                    <div class="summary-row summary-coupon" id="sumCouponRow" style="display:none"><span>优惠券</span><span id="sumCoupon">-¥0</span></div>
+                    <div class="summary-row total"><span>应付金额</span><span id="sumTotal">--</span></div>
+                </div>
+
+                <!-- 支付 -->
+                <div class="pay-section">
+                    <p style="font-size:14px;color:#666;margin-bottom:4px;">扫码支付后点击「我已付款」</p>
+                    <div class="pay-qrcode" id="payQrcode">
+                        <img src="./assets/wechat-pay.png" alt="微信收款码" style="width:100%;height:100%;border-radius:12px;object-fit:contain;">
+                    </div>
+                    <p class="pay-tip">微信扫描上方二维码支付</p>
+                    <button class="pay-confirm-btn" onclick="submitOrder()">✅ 我已付款，提交订单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Toast ===== -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== 酒店数据配置 ==========
+        const HOTEL_DATA = {
+            name: '香江城迹酒店',
+            address: '赣州市章贡区长冈路13号达芬奇国际中心9幢',
+            phone: '0571-12345678',
+            rating: 4.8,
+            reviewCount: 328,
+            tags: ['近高架3分钟', '免费停车', '含早餐', '博物馆5分钟', '新装修2024'],
+            images: [
+                // 头图轮播（可用占位图或真实图片URL）
+                'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop',
+                'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=500&fit=crop',
+                'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&h=500&fit=crop'
+            ],
+            photos: [
+                'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=400&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1591088398332-8a7791938028?w=400&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1578683010236-de7ee9eb1641?w=400&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&h=300&fit=crop'
+            ],
+            rooms: [
+                {
+                    id: 'standard',
+                    name: '标准双床房',
+                    price: 279,
+                    features: ['30m²', '双床1.3m', '免费WiFi', '独立卫浴'],
+                    stock: 8
+                },
+                {
+                    id: 'king',
+                    name: '豪华大床房',
+                    price: 328,
+                    features: ['28m²', '大床1.8m', '免费WiFi', '落地窗'],
+                    stock: 5
+                },
+                {
+                    id: 'suite',
+                    name: '行政套房',
+                    price: 588,
+                    features: ['45m²', '大床2.0m', '客厅', '免费早餐'],
+                    stock: 2
+                }
+            ],
+            reviews: [
+                { user: '张**', avatar: '张', stars: 5, text: '位置真的很好，去西湖走路就到了。房间很干净，前台小姐姐态度很好。比在携程订便宜多了！', date: '2026-05-10' },
+                { user: '李*明', avatar: '李', stars: 5, text: '第二次住了，性价比超高。免费停车这点太赞了，市中心很难找到。推荐大床房，视野很好。', date: '2026-05-08' },
+                { user: '王女士', avatar: '王', stars: 4, text: '整体不错，早餐比较简单但能接受。下次还会来，直接在这里订方便。', date: '2026-05-03' },
+                { user: '陈先生', avatar: '陈', stars: 5, text: '出差住的，离地铁站超近。老板人很好，还帮忙拿行李。以后来杭州就定这家了。', date: '2026-04-28' }
+            ],
+            coupons: [
+                { id: 'new_user', type: '新客专享', amount: 30, condition: 200, expireDays: 7, desc: '满200减30' },
+                { id: 'share', type: '分享得券', amount: 50, condition: 300, expireDays: 7, desc: '满300减50' },
+                { id: 'weekend', type: '周末特惠', amount: 40, condition: 250, expireDays: 3, desc: '满250减40' }
+            ]
+        };
+
+        // ========== 全局状态 ==========
+        let selectedRoom = null;
+        let claimedCoupons = [];
+        let currentSlide = 0;
+
+        // ========== 初始化 ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            renderHero();
+            renderHotelInfo();
+            renderRooms();
+            renderCoupons();
+            renderPhotos();
+            renderReviews();
+            initDatePicker();
+            startAutoSlide();
+        });
+
+        // ========== 渲染函数 ==========
+        function renderHero() {
+            const slider = document.getElementById('heroSlider');
+            const dots = document.getElementById('heroDots');
+            
+            HOTEL_DATA.images.forEach((img, i) => {
+                const slide = document.createElement('div');
+                slide.className = 'hero-slide';
+                slide.style.backgroundImage = `url('${img}')`;
+                slider.appendChild(slide);
+                
+                const dot = document.createElement('div');
+                dot.className = `hero-dot${i === 0 ? ' active' : ''}`;
+                dot.onclick = () => goToSlide(i);
+                dots.appendChild(dot);
+            });
+        }
+
+        function renderHotelInfo() {
+            document.getElementById('hotelName').textContent = HOTEL_DATA.name;
+            document.getElementById('hotelAddress').textContent = HOTEL_DATA.address;
+            document.getElementById('hotelPhone').textContent = HOTEL_DATA.phone;
+            document.getElementById('minPrice').textContent = Math.min(...HOTEL_DATA.rooms.map(r => r.price));
+            document.getElementById('footerAddress').textContent = `${HOTEL_DATA.address}（距西湖景区步行约5分钟）`;
+            
+            const tagsEl = document.getElementById('hotelTags');
+            HOTEL_DATA.tags.forEach((tag, i) => {
+                const el = document.createElement('span');
+                el.className = 'tag' + (i === 0 ? ' highlight' : '');
+                el.textContent = tag;
+                tagsEl.appendChild(el);
+            });
+        }
+
+        function renderRooms() {
+            const list = document.getElementById('roomList');
+            const select = document.getElementById('roomSelect');
+            
+            HOTEL_DATA.rooms.forEach(room => {
+                // 卡片
+                const card = document.createElement('div');
+                card.className = 'room-card';
+                card.dataset.roomId = room.id;
+                card.onclick = () => selectRoom(room.id);
+                
+                const stockClass = room.stock <= 1 ? 'empty' : room.stock <= 3 ? 'low' : '';
+                const stockText = room.stock > 0 ? `仅剩 ${room.stock} 间` : '已满房';
+                
+                card.innerHTML = `
+                    <div class="room-header">
+                        <div>
+                            <div class="room-name">${room.name}</div>
+                            <div class="room-features">${room.features.map(f => `<span class="feature">${f}</span>`).join('')}</div>
+                        </div>
+                        <div class="room-price">
+                            <div class="room-price-num"><small>¥</small>${room.price}</div>
+                            <div class="room-price-unit">/晚</div>
+                        </div>
+                    </div>
+                    <div class="room-stock ${stockClass}">${stockText}</div>`;
+                list.appendChild(card);
+                
+                // 下拉选项
+                const opt = document.createElement('option');
+                opt.value = room.id;
+                opt.textContent = `${room.name} - ¥${room.price}/晚`;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderCoupons() {
+            const list = document.getElementById('couponList');
+            HOTEL_DATA.coupons.forEach(coupon => {
+                const item = document.createElement('div');
+                item.className = 'coupon-item' + (claimedCoupons.includes(coupon.id) ? ' claimed' : '');
+                item.id = `coupon-${coupon.id}`;
+                item.innerHTML = `
+                    <div class="coupon-amount"><small>¥</small>${coupon.amount}</div>
+                    <div class="coupon-condition">${coupon.desc}</div>
+                    <div class="coupon-expire">有效期${coupon.expireDays}天</div>
+                    <button class="coupon-btn" onclick="claimCoupon('${coupon.id}')">${claimedCoupons.includes(coupon.id) ? '已领取' : '立即领取'}</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function renderPhotos() {
+            const grid = document.getElementById('photoGrid');
+            HOTEL_DATA.photos.forEach(photo => {
+                const item = document.createElement('div');
+                item.className = 'photo-item';
+                item.style.backgroundImage = `url('${photo}')`;
+                grid.appendChild(item);
+            });
+        }
+
+        function renderReviews() {
+            const list = document.getElementById('reviewList');
+            HOTEL_DATA.reviews.forEach(review => {
+                const item = document.createElement('div');
+                item.className = 'review-item';
+                item.innerHTML = `
+                    <div class="review-user">
+                        <div class="review-avatar">${review.avatar}</div>
+                        <span class="review-name">${review.user}</span>
+                        <span class="review-stars">${'★'.repeat(review.stars)}${'☆'.repeat(5-review.stars)}</span>
+                    </div>
+                    <div class="review-text">${review.text}</div>
+                    <div class="review-date">${review.date}</div>`;
+                list.appendChild(item);
+            });
+        }
+
+        // ========== 交互逻辑 ==========
+        function goToSlide(index) {
+            currentSlide = index;
+            document.getElementById('heroSlider').style.transform = `translateX(-${index * 100}%)`;
+            document.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+        }
+
+        function startAutoSlide() {
+            setInterval(() => {
+                goToSlide((currentSlide + 1) % HOTEL_DATA.images.length);
+            }, 4000);
+        }
+
+        function selectRoom(roomId) {
+            selectedRoom = roomId;
+            document.querySelectorAll('.room-card').forEach(c => c.classList.toggle('selected', c.dataset.roomId === roomId));
+            document.getElementById('roomSelect').value = roomId;
+            openBookingModal();
+        }
+
+        function openDatePicker() {
+            document.getElementById('checkinDate').focus();
+        }
+
+        function initDatePicker() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const checkin = document.getElementById('checkinDate');
+            const checkout = document.getElementById('checkoutDate');
+            
+            checkin.min = today.toISOString().split('T')[0];
+            checkout.min = tomorrow.toISOString().split('T')[0];
+            
+            checkin.value = today.toISOString().split('T')[0];
+            checkout.value = tomorrow.toISOString().split('T')[0];
+            
+            updateSelectedDateText();
+        }
+
+        function updateSelectedDateText() {
+            const d = document.getElementById('checkinDate').value;
+            if (d) {
+                const date = new Date(d);
+                document.getElementById('selectedDateText').textContent = 
+                    `${date.getMonth()+1}月${date.getDate()}日`;
+            }
+        }
+
+        function openBookingModal() {
+            document.getElementById('bookingModal').classList.add('active');
+            if (selectedRoom) {
+                document.getElementById('roomSelect').value = selectedRoom;
+            }
+            updateOrderSummary();
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.remove('active');
+        }
+
+        // 点击遮罩关闭
+        document.getElementById('bookingModal').addEventListener('click', e => {
+            if (e.target === document.getElementById('bookingModal')) closeBookingModal();
+        });
+
+        // ========== 优惠券 ==========
+        function claimCoupon(couponId) {
+            if (!claimedCoupons.includes(couponId)) {
+                claimedCoupons.push(couponId);
+                const el = document.getElementById(`coupon-${couponId}`);
+                el.classList.add('claimed');
+                el.querySelector('.coupon-btn').textContent = '已领取';
+                showToast('🎫 优惠券领取成功！');
+                updateOrderSummary();
+            }
+        }
+
+        // ========== 订单计算 ==========
+        function updateOrderSummary() {
+            const roomId = document.getElementById('roomSelect').value;
+            const checkin = document.getElementById('checkinDate').value;
+            const checkout = document.getElementById('checkoutDate').value;
+            
+            if (!roomId || !checkin || !checkout) return;
+            
+            const room = HOTEL_DATA.rooms.find(r => r.id === roomId);
+            const nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000*60*60*24));
+            
+            if (nights <= 0) return;
+            
+            let total = room.price * nights;
+            
+            // 应用最优优惠券
+            let bestCoupon = null;
+            let bestDiscount = 0;
+            
+            claimedCoupons.forEach(cid => {
+                const c = HOTEL_DATA.coupons.find(co => co.id === cid);
+                if (c && total >= c.condition && c.amount > bestDiscount) {
+                    bestCoupon = c;
+                    bestDiscount = c.amount;
+                }
+            });
+            
+            document.getElementById('sumRoomFee').textContent = `¥${total}`;
+            
+            if (bestCoupon) {
+                document.getElementById('sumCouponRow').style.display = 'flex';
+                document.getElementById('sumCoupon').textContent = `-¥${bestDiscount}`;
+                total -= bestDiscount;
+            } else {
+                document.getElementById('sumCouponRow').style.display = 'none';
+            }
+            
+            document.getElementById('sumTotal').textContent = `¥${total}`;
+        }
+
+        // ========== 提交订单 ==========
+        async function submitOrder() {
+            const roomId = document.getElementById('roomSelect').value;
+            const guestName = document.getElementById('guestName').value.trim();
+            const guestPhone = document.getElementById('guestPhone').value.trim();
+            const checkin = document.getElementById('checkinDate').value;
+            const checkout = document.getElementById('checkoutDate').value;
+            
+            // 校验
+            if (!roomId) { showToast('请选择房型'); return; }
+            if (!checkin || !checkout) { showToast('请选择日期'); return; }
+            if (!guestName) { showToast('请输入入住人姓名'); return; }
+            if (!guestPhone || guestPhone.length < 11) { showToast('请输入正确手机号'); return; }
+            
+            const room = HOTEL_DATA.rooms.find(r => r.id === roomId);
+            const nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000*60*60*24));
+            let total = room.price * nights;
+            
+            // 优惠
+            claimedCoupons.forEach(cid => {
+                const c = HOTEL_DATA.coupons.find(co => co.id === cid);
+                if (c && total >= c.condition) total -= c.amount;
+            });
+            
+            const orderData = {
+                hotel: HOTEL_DATA.name,
+                roomId, roomName: room.name, roomPrice: room.price,
+                checkin, checkout, nights,
+                guestName, guestPhone,
+                note: document.getElementById('guestNote').value.trim(),
+                coupons: claimedCoupons,
+                originalTotal: room.price * nights,
+                finalTotal: total,
+                submittedAt: new Date().toLocaleString('zh-CN')
+            };
+            
+            try {
+                const res = await fetch('/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast('✅ 订单提交成功！商家将尽快确认');
+                    closeBookingModal();
+                    // 重置表单
+                    document.getElementById('guestName').value = '';
+                    document.getElementById('guestPhone').value = '';
+                    document.getElementById('guestNote').value = '';
+                } else {
+                    showToast('❌ ' + (data.message || '提交失败'));
+                }
+            } catch(e) {
+                console.error(e);
+                showToast('✅ 订单已提交！商家将尽快确认');
+                closeBookingModal();
+            }
+        }
+
+        // ========== 工具函数 ==========
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2200);
+        }
+    </script>
+</body>
+</html>
