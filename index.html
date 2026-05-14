@@ -228,7 +228,7 @@
         </div>
         <div class="footer-section">
             <div class="footer-label">🚗 交通</div>
-            <div class="footer-value">地铁1号线文三路站C口步行3分钟 · 免费停车</div>
+            <div class="footer-value">长冈路13号达芬奇国际中心 · 免费停车</div>
         </div>
     </div>
 
@@ -648,7 +648,7 @@
             };
             
             try {
-                const res = await fetch('/api/order', {
+                const res = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(orderData)

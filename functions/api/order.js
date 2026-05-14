@@ -1,4 +1,4 @@
-// ========== Cloudflare Pages Function: 订单处理 ==========
+// ========== Cloudflare Pages Function: 订单管理 ==========
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -16,6 +16,8 @@ export async function onRequestPost(context) {
     
     // 生成订单ID
     const orderId = `ORD${Date.now()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+    const nights = Math.ceil((new Date(body.checkout) - new Date(body.checkin)) / (1000*60*60*24));
+    const submittedAt = new Date().toLocaleString('zh-CN');
     
     // 订单数据
     const order = {
@@ -26,23 +28,22 @@ export async function onRequestPost(context) {
       roomPrice: body.roomPrice,
       checkin: body.checkin,
       checkout: body.checkout,
-      nights: body.nights || 1,
+      nights: nights,
       guestName: body.guestName,
       guestPhone: body.guestPhone,
       note: body.note || '',
       coupons: body.coupons || [],
       originalTotal: body.originalTotal || body.roomPrice,
       finalTotal: body.finalTotal || body.roomPrice,
-      submittedAt: body.submittedAt || new Date().toLocaleString('zh-CN'),
+      submittedAt: submittedAt,
       status: 'pending',
       ip: request.headers.get('cf-connecting-ip') || 'unknown'
     };
     
-    // 1. 发送企业微信通知
+    // ===== 1. 企业微信通知 =====
     let wecomOk = false;
     if (env.WECOM_WEBHOOK_URL) {
       try {
-        const nights = Math.ceil((new Date(body.checkout) - new Date(body.checkin)) / (1000*60*60*24));
         const wecomMessage = {
           msgtype: 'markdown',
           markdown: {
@@ -56,7 +57,7 @@ export async function onRequestPost(context) {
               `📱 手机：${body.guestPhone}\n` +
               `💰 实付：¥${body.finalTotal}\n` +
               `💬 备注：${body.note || '无'}\n` +
-              `⏰ 提交：${order.submittedAt}\n\n` +
+              `⏰ 提交：${submittedAt}\n\n` +
               `请及时确认订单！📞`
           }
         };
@@ -74,110 +75,179 @@ export async function onRequestPost(context) {
       }
     }
     
-    // 2. 写入飞书多维表格
+    // ===== 2. 飞书多维表格存储（预订订单）=====
     let feishuOk = false;
     if (env.FEISHU_APP_ID && env.FEISHU_APP_SECRET && env.FEISHU_BITABLE_APP_TOKEN && env.FEISHU_BITABLE_TABLE_ID) {
       try {
-        // 获取 access_token
-        const tokenRes = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            app_id: env.FEISHU_APP_ID,
-            app_secret: env.FEISHU_APP_SECRET
-          })
-        });
-        const tokenData = await tokenRes.json();
+        const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
         
-        if (tokenData.code === 0) {
-          const accessToken = tokenData.tenant_access_token;
-          
-          // 写入记录
-          const addRes = await fetch(
-            `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BITABLE_TABLE_ID}/records`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                fields: {
-                  '订单号': orderId,
-                  '酒店名称': order.hotel,
-                  '房型': order.roomName,
-                  '入住日期': body.checkin,
-                  '离店日期': body.checkout,
-                  '入住天数': order.nights,
-                  '入住人': order.guestName,
-                  '手机号': order.guestPhone,
-                  '备注': order.note,
-                  '实付金额': order.finalTotal,
-                  '订单状态': '待确认',
-                  '提交时间': order.submittedAt
-                }
-              })
-            }
-          );
-          const addData = await addRes.json();
-          feishuOk = addData.code === 0;
-        }
+        const addRes = await fetch(
+          `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BITABLE_TABLE_ID}/records`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              fields: {
+                '订单号': orderId,
+                '酒店名称': order.hotel,
+                '房型': order.roomName,
+                '入住日期': body.checkin,
+                '离店日期': body.checkout,
+                '入住天数': nights,
+                '入住人': order.guestName,
+                '手机号': order.guestPhone,
+                '备注': order.note,
+                '实付金额': order.finalTotal,
+                '订单状态': '待确认',
+                '提交时间': submittedAt
+              }
+            })
+          }
+        );
+        const addData = await addRes.json();
+        feishuOk = addData.code === 0;
       } catch(e) {
-        console.error('Feishu error:', e);
-      }
-    }
-    
-    // 3. 保存到 D1 数据库（可选，如果配置了）
-    let d1Ok = false;
-    if (env.DB) {
-      try {
-        const nights = Math.ceil((new Date(body.checkout) - new Date(body.checkin)) / (1000*60*60*24));
-        await env.DB.prepare(`
-          INSERT INTO orders (id, hotel, room_id, room_name, room_price, checkin, checkout, nights, guest_name, guest_phone, note, original_total, final_total, status, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', datetime('now'))
-        `).bind(
-          orderId, order.hotel, body.roomId, order.roomName, body.roomPrice,
-          body.checkin, body.checkout, nights,
-          body.guestName, body.guestPhone, body.note || '',
-          body.originalTotal, body.finalTotal
-        ).run();
-        d1Ok = true;
-      } catch(e) {
-        console.error('D1 error:', e);
+        console.error('Feishu write error:', e);
       }
     }
     
     return jsonResponse({
       success: true,
-      orderId,
+      orderId: orderId,
       message: '订单提交成功，商家将尽快确认',
-      notify: {
-        wecom: wecomOk,
-        feishu: feishuOk
-      }
+      notify: { wecom: wecomOk, feishu: feishuOk }
     });
     
   } catch(e) {
-    console.error('Order error:', e);
+    console.error('Order submit error:', e);
     return jsonResponse({ success: false, message: '服务器错误，请重试' }, 500);
   }
 }
 
-// GET: 查询订单列表（商家后台用）
+// GET: 查询订单列表（商家后台）
 export async function onRequestGet(context) {
   const { env, request } = context;
   const url = new URL(request.url);
   const action = url.searchParams.get('action');
   
   if (action === 'list') {
-    // 返回订单列表（模拟数据，MVP阶段）
-    return jsonResponse({
-      success: true,
-      orders: []
-    });
+    return jsonResponse({ success: false, message: 'Use /api/orders endpoint' }, 400);
   }
   
   return jsonResponse({ success: false, message: 'Unknown action' }, 400);
+}
+
+// ===== 读取订单列表（GET /api/orders）=====
+export async function onRequest(context) {
+  const { env, request } = context;
+  const url = new URL(request.url);
+  
+  // 只处理 GET 请求的列表查询
+  if (request.method === 'GET' && url.pathname === '/api/orders') {
+    try {
+      if (!env.FEISHU_APP_ID || !env.FEISHU_APP_SECRET || !env.FEISHU_BITABLE_APP_TOKEN || !env.FEISHU_BITABLE_TABLE_ID) {
+        return jsonResponse({ success: false, message: '飞书配置未完成', orders: [] }, 200);
+      }
+      
+      // 获取 access_token
+      const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
+      
+      // 查询最近的订单（最多50条）
+      const listRes = await fetch(
+        `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BITABLE_TABLE_ID}/records?page_size=50&sort=-created_time`,
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        }
+      );
+      
+      const listData = await listRes.json();
+      
+      if (listData.code !== 0) {
+        return jsonResponse({ success: false, message: '读取飞书失败', orders: [] }, 200);
+      }
+      
+      // 转换飞书记录为前端格式
+      const orders = (listData.data.items || []).map(item => {
+        const f = item.fields;
+        return {
+          id: f['订单号'] || item.record_id,
+          hotel: f['酒店名称'] || '',
+          roomName: f['房型'] || '',
+          checkin: f['入住日期'] || '',
+          checkout: f['离店日期'] || '',
+          nights: f['入住天数'] || 1,
+          guestName: f['入住人'] || '',
+          guestPhone: f['手机号'] || '',
+          note: f['备注'] || '',
+          finalTotal: f['实付金额'] || 0,
+          status: f['订单状态'] === '已确认' ? 'confirmed' : f['订单状态'] === '已拒绝' ? 'cancelled' : 'pending',
+          statusText: f['订单状态'] || '待确认',
+          submittedAt: f['提交时间'] || ''
+        };
+      });
+      
+      return jsonResponse({ success: true, orders: orders });
+      
+    } catch(e) {
+      console.error('Orders list error:', e);
+      return jsonResponse({ success: false, message: '服务器错误', orders: [] }, 200);
+    }
+  }
+  
+  // POST 到 /api/orders
+  if (request.method === 'POST' && url.pathname === '/api/orders') {
+    const body = await request.json();
+    
+    // 处理订单确认/取消
+    if (body.action === 'updateStatus' && body.recordId) {
+      try {
+        const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
+        const statusMap = { confirmed: '已确认', cancelled: '已拒绝', pending: '待确认' };
+        
+        const updateRes = await fetch(
+          `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BITABLE_TABLE_ID}/records/${body.recordId}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              fields: {
+                '订单状态': statusMap[body.status] || body.status
+              }
+            })
+          }
+        );
+        
+        const updateData = await updateRes.json();
+        return jsonResponse({ success: updateData.code === 0, message: updateData.msg });
+      } catch(e) {
+        return jsonResponse({ success: false, message: '更新失败' }, 500);
+      }
+    }
+    
+    // 新建订单
+    return onRequestPost(context);
+  }
+  
+  // 404
+  return jsonResponse({ success: false, message: 'Not found' }, 404);
+}
+
+// ===== 辅助函数 =====
+async function getFeishuToken(appId, appSecret) {
+  const res = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ app_id: appId, app_secret: appSecret })
+  });
+  const data = await res.json();
+  if (data.code !== 0) throw new Error(data.msg);
+  return data.tenant_access_token;
 }
 
 function jsonResponse(data, status = 200) {

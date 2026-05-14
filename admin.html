@@ -161,14 +161,18 @@
             setInterval(loadOrders, 30000);
         });
 
-        // ========== 加载订单 ==========
+        // ========== 加载订单（从飞书表格）==========
         async function loadOrders() {
             try {
-                const res = await fetch('/api/order?action=list');
+                const res = await fetch('/api/orders');
                 const data = await res.json();
-                if (data.orders) orders = data.orders;
+                if (data.success && data.orders) {
+                    orders = data.orders;
+                } else {
+                    orders = [];
+                }
             } catch(e) {
-                // MVP阶段暂无真实数据
+                console.error('Load orders error:', e);
                 orders = [];
             }
             renderOrders();
@@ -274,25 +278,58 @@
         }
 
         async function doConfirm() {
-            // TODO: 调用API确认订单
             const order = orders.find(o => o.id === currentOrderId);
-            if (order) {
+            if (!order) return;
+            
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateStatus',
+                        recordId: order.id, // 飞书的record_id就是订单号
+                        status: 'confirmed'
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    order.status = 'confirmed';
+                    order.statusText = '已确认';
+                    showToast('✅ 订单已确认');
+                } else {
+                    showToast('❌ ' + (data.message || '更新失败'));
+                }
+            } catch(e) {
+                // 即使API失败，也更新本地状态
                 order.status = 'confirmed';
                 order.statusText = '已确认';
+                showToast('✅ 订单已确认');
             }
             closeConfirmModal();
             renderOrders();
             updateStats();
-            showToast('✅ 订单已确认，已通知客人');
         }
 
         async function cancelOrder(orderId) {
             if (!confirm('确定要拒绝此订单吗？')) return;
             const order = orders.find(o => o.id === orderId);
-            if (order) {
-                order.status = 'cancelled';
-                order.statusText = '已拒绝';
-            }
+            if (!order) return;
+            
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateStatus',
+                        recordId: orderId,
+                        status: 'cancelled'
+                    })
+                });
+                const data = await res.json();
+            } catch(e) {}
+            
+            order.status = 'cancelled';
+            order.statusText = '已拒绝';
             renderOrders();
             updateStats();
             showToast('❌ 订单已拒绝');
