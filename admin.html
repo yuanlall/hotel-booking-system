@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>酒店管理后台</title>
+    <title>閰掑簵绠＄悊鍚庡彴</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; background: #f0f2f5; color: #333; }
@@ -21,7 +21,7 @@
         .section { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
         .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
         
-        /* 订单卡片 */
+        /* 璁㈠崟鍗＄墖 */
         .order-card { border: 1.5px solid #f0f0f0; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
         .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .order-id { font-size: 13px; color: #999; }
@@ -42,7 +42,7 @@
         .btn-contact { background: #1890ff; color: #fff; }
         .btn:active { opacity: 0.85; }
         
-        /* 房态管理 */
+        /* 鎴挎€佺鐞?*/
         .room-manager { margin-bottom: 12px; padding: 14px; background: #fafafa; border-radius: 10px; }
         .room-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .room-row:last-child { border-bottom: none; }
@@ -55,7 +55,7 @@
         .empty { text-align: center; padding: 40px; color: #999; }
         .empty-icon { font-size: 48px; margin-bottom: 10px; }
         
-        /* 弹窗 */
+        /* 寮圭獥 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
         .modal { background: #fff; border-radius: 16px; width: 90%; max-width: 360px; padding: 24px; }
@@ -70,75 +70,75 @@
 <body>
 
     <div class="header">
-        <h1>🏨 酒店管理后台</h1>
-        <p>实时订单管理 · 房态控制</p>
+        <h1>馃彣 閰掑簵绠＄悊鍚庡彴</h1>
+        <p>瀹炴椂璁㈠崟绠＄悊 路 鎴挎€佹帶鍒?/p>
     </div>
 
-    <!-- 统计卡片 -->
+    <!-- 缁熻鍗＄墖 -->
     <div style="padding: 0 8px; margin-top: -10px;">
         <div class="section" style="padding: 14px;">
             <div style="display: flex; gap: 12px;">
                 <div style="flex:1;text-align:center;padding:12px;background:#fff7e6;border-radius:10px;">
                     <div style="font-size:26px;font-weight:700;color:#fa8c16;" id="statPending">0</div>
-                    <div style="font-size:12px;color:#999;margin-top:4px;">待确认</div>
+                    <div style="font-size:12px;color:#999;margin-top:4px;">寰呯‘璁?/div>
                 </div>
                 <div style="flex:1;text-align:center;padding:12px;background:#f6ffed;border-radius:10px;">
                     <div style="font-size:26px;font-weight:700;color:#52c41a;" id="statConfirmed">0</div>
-                    <div style="font-size:12px;color:#999;margin-top:4px;">已确认</div>
+                    <div style="font-size:12px;color:#999;margin-top:4px;">宸茬‘璁?/div>
                 </div>
                 <div style="flex:1;text-align:center;padding:12px;background:#fff1f0;border-radius:10px;">
                     <div style="font-size:26px;font-weight:700;color:#ff4d4f;" id="statToday">0</div>
-                    <div style="font-size:12px;color:#999;margin-top:4px;">今日收入</div>
+                    <div style="font-size:12px;color:#999;margin-top:4px;">浠婃棩鏀跺叆</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="content">
-        <!-- 房态管理 -->
+        <!-- 鎴挎€佺鐞?-->
         <div class="section">
-            <div class="section-title">🛏️ 房态管理</div>
+            <div class="section-title">馃洀锔?鎴挎€佺鐞?/div>
             <div id="roomManager"></div>
         </div>
 
-        <!-- 订单列表 -->
+        <!-- 璁㈠崟鍒楄〃 -->
         <div class="section">
-            <div class="section-title">📋 今日订单</div>
+            <div class="section-title">馃搵 浠婃棩璁㈠崟</div>
             <div id="orderList">
                 <div class="empty">
-                    <div class="empty-icon">📦</div>
-                    <div>暂无订单</div>
-                    <div style="font-size:12px;margin-top:6px;">有订单时会在这里显示</div>
+                    <div class="empty-icon">馃摝</div>
+                    <div>鏆傛棤璁㈠崟</div>
+                    <div style="font-size:12px;margin-top:6px;">鏈夎鍗曟椂浼氬湪杩欓噷鏄剧ず</div>
                 </div>
             </div>
         </div>
 
-        <!-- 操作说明 -->
+        <!-- 鎿嶄綔璇存槑 -->
         <div class="section" style="background:#f0f7ff;">
-            <div class="section-title" style="color:#1890ff;">💡 操作提示</div>
+            <div class="section-title" style="color:#1890ff;">馃挕 鎿嶄綔鎻愮ず</div>
             <div style="font-size:13px;color:#666;line-height:1.8;">
-                1. 收到微信通知后，在这里确认订单<br>
-                2. 点击「确认」会给客人发短信通知<br>
-                3. 点击「拨打电话」可直接联系客人<br>
-                4. 实时调整房态，避免超售
+                1. 鏀跺埌寰俊閫氱煡鍚庯紝鍦ㄨ繖閲岀‘璁よ鍗?br>
+                2. 鐐瑰嚮銆岀‘璁ゃ€嶄細缁欏浜哄彂鐭俊閫氱煡<br>
+                3. 鐐瑰嚮銆屾嫧鎵撶數璇濄€嶅彲鐩存帴鑱旂郴瀹汉<br>
+                4. 瀹炴椂璋冩暣鎴挎€侊紝閬垮厤瓒呭敭
             </div>
         </div>
     </div>
 
-    <!-- 确认弹窗 -->
+    <!-- 纭寮圭獥 -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal">
-            <div class="modal-title">✅ 确认订单</div>
+            <div class="modal-title">鉁?纭璁㈠崟</div>
             <div class="modal-content" id="confirmContent"></div>
             <div class="modal-actions">
-                <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">取消</button>
-                <button class="modal-btn modal-btn-confirm" onclick="doConfirm()">确认</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">鍙栨秷</button>
+                <button class="modal-btn modal-btn-confirm" onclick="doConfirm()">纭</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ========== 数据状态 ==========
+        // ========== 鏁版嵁鐘舵€?==========
         let orders = [];
         let roomStatus = {
             standard: true,
@@ -148,23 +148,22 @@
         let currentOrderId = null;
 
         const ROOM_NAMES = {
-            standard: '标准双床房',
-            king: '豪华大床房',
-            suite: '行政套房'
+            standard: '鏍囧噯鍙屽簥鎴?,
+            king: '璞崕澶у簥鎴?,
+            suite: '琛屾斂濂楁埧'
         };
 
-        // ========== 初始化 ==========
+        // ========== 鍒濆鍖?==========
         document.addEventListener('DOMContentLoaded', () => {
             renderRoomManager();
             loadOrders();
-            // 每30秒刷新一次
-            setInterval(loadOrders, 30000);
+            // 姣?0绉掑埛鏂颁竴娆?            setInterval(loadOrders, 30000);
         });
 
-        // ========== 加载订单（从飞书表格）==========
+        // ========== 鍔犺浇璁㈠崟锛堜粠椋炰功琛ㄦ牸锛?=========
         async function loadOrders() {
             try {
-                const res = await fetch('/api/orders');
+                const res = await fetch('/api/order?action=list');
                 const data = await res.json();
                 if (data.success && data.orders) {
                     orders = data.orders;
@@ -179,24 +178,24 @@
             updateStats();
         }
 
-        // ========== 渲染 ==========
+        // ========== 娓叉煋 ==========
         function renderRoomManager() {
             const el = document.getElementById('roomManager');
             const rooms = [
-                { id: 'standard', name: '标准双床房', stock: 8 },
-                { id: 'king', name: '豪华大床房', stock: 5 },
-                { id: 'suite', name: '行政套房', stock: 2 }
+                { id: 'standard', name: '鏍囧噯鍙屽簥鎴?, stock: 8 },
+                { id: 'king', name: '璞崕澶у簥鎴?, stock: 5 },
+                { id: 'suite', name: '琛屾斂濂楁埧', stock: 2 }
             ];
             
             el.innerHTML = rooms.map(r => `
                 <div class="room-row">
                     <div>
                         <div class="room-name">${r.name}</div>
-                        <div class="room-stock-info">剩余 <span id="stock-${r.id}">${roomStatus[r.id] ? r.stock : 0}</span> 间</div>
+                        <div class="room-stock-info">鍓╀綑 <span id="stock-${r.id}">${roomStatus[r.id] ? r.stock : 0}</span> 闂?/div>
                     </div>
                     <button class="stock-btn ${roomStatus[r.id] ? 'on' : 'off'}" 
                             onclick="toggleRoom('${r.id}', ${r.stock})">
-                        ${roomStatus[r.id] ? '可订' : '关房'}
+                        ${roomStatus[r.id] ? '鍙' : '鍏虫埧'}
                     </button>
                 </div>
             `).join('');
@@ -208,9 +207,9 @@
             if (orders.length === 0) {
                 el.innerHTML = `
                     <div class="empty">
-                        <div class="empty-icon">📦</div>
-                        <div>暂无订单</div>
-                        <div style="font-size:12px;margin-top:6px;">有订单时会在这里显示</div>
+                        <div class="empty-icon">馃摝</div>
+                        <div>鏆傛棤璁㈠崟</div>
+                        <div style="font-size:12px;margin-top:6px;">鏈夎鍗曟椂浼氬湪杩欓噷鏄剧ず</div>
                     </div>`;
                 return;
             }
@@ -219,19 +218,19 @@
                 <div class="order-card">
                     <div class="order-header">
                         <span class="order-id">${order.id}</span>
-                        <span class="order-status ${order.status === 'confirmed' ? 'status-confirmed' : order.status === 'cancelled' ? 'status-cancelled' : 'status-pending'}">${order.statusText || '待确认'}</span>
+                        <span class="order-status ${order.status === 'confirmed' ? 'status-confirmed' : order.status === 'cancelled' ? 'status-cancelled' : 'status-pending'}">${order.statusText || '寰呯‘璁?}</span>
                     </div>
                     <div class="order-room">${order.roomName}</div>
-                    <div class="order-dates">📅 ${order.checkin} → ${order.checkout} · ${order.nights}晚</div>
+                    <div class="order-dates">馃搮 ${order.checkin} 鈫?${order.checkout} 路 ${order.nights}鏅?/div>
                     <div class="order-guest">
-                        <span>👤 ${order.guestName} · ${order.guestPhone}</span>
-                        <span class="order-price">¥${order.finalTotal}</span>
+                        <span>馃懁 ${order.guestName} 路 ${order.guestPhone}</span>
+                        <span class="order-price">楼${order.finalTotal}</span>
                     </div>
                     ${order.status === 'pending' ? `
                     <div class="order-actions">
-                        <button class="btn btn-confirm" onclick="showConfirmModal('${order.id}')">✅ 确认</button>
-                        <button class="btn btn-contact" onclick="location.href='tel:${order.guestPhone}'">📞 联系</button>
-                        <button class="btn btn-cancel" onclick="cancelOrder('${order.id}')">❌ 拒绝</button>
+                        <button class="btn btn-confirm" onclick="showConfirmModal('${order.id}')">鉁?纭</button>
+                        <button class="btn btn-contact" onclick="location.href='tel:${order.guestPhone}'">馃摓 鑱旂郴</button>
+                        <button class="btn btn-cancel" onclick="cancelOrder('${order.id}')">鉂?鎷掔粷</button>
                     </div>` : ''}
                 </div>
             `).join('');
@@ -247,28 +246,27 @@
             document.getElementById('statToday').textContent = todayIncome;
         }
 
-        // ========== 房态控制 ==========
+        // ========== 鎴挎€佹帶鍒?==========
         function toggleRoom(roomId, maxStock) {
             roomStatus[roomId] = !roomStatus[roomId];
             document.getElementById(`stock-${roomId}`).textContent = roomStatus[roomId] ? maxStock : 0;
             const btn = event.target;
             btn.className = `stock-btn ${roomStatus[roomId] ? 'on' : 'off'}`;
-            btn.textContent = roomStatus[roomId] ? '可订' : '关房';
+            btn.textContent = roomStatus[roomId] ? '鍙' : '鍏虫埧';
             
-            // TODO: 同步到后端
-            showToast(roomStatus[roomId] ? '房型已开启' : '房型已关闭');
+            // TODO: 鍚屾鍒板悗绔?            showToast(roomStatus[roomId] ? '鎴垮瀷宸插紑鍚? : '鎴垮瀷宸插叧闂?);
         }
 
-        // ========== 订单操作 ==========
+        // ========== 璁㈠崟鎿嶄綔 ==========
         function showConfirmModal(orderId) {
             currentOrderId = orderId;
             const order = orders.find(o => o.id === orderId);
             document.getElementById('confirmContent').innerHTML = `
-                确认接收以下订单？<br><br>
+                纭鎺ユ敹浠ヤ笅璁㈠崟锛?br><br>
                 <strong>${order.roomName}</strong><br>
                 ${order.checkin} - ${order.checkout}<br>
-                客人：${order.guestName}<br>
-                实付：<strong style="color:#ff6b35;">¥${order.finalTotal}</strong>
+                瀹汉锛?{order.guestName}<br>
+                瀹炰粯锛?strong style="color:#ff6b35;">楼${order.finalTotal}</strong>
             `;
             document.getElementById('confirmModal').classList.add('active');
         }
@@ -282,28 +280,26 @@
             if (!order) return;
             
             try {
-                const res = await fetch('/api/orders', {
+                const res = await fetch('/api/order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'updateStatus',
-                        recordId: order.id, // 飞书的record_id就是订单号
-                        status: 'confirmed'
+                        recordId: order.id, // 椋炰功鐨剅ecord_id灏辨槸璁㈠崟鍙?                        status: 'confirmed'
                     })
                 });
                 const data = await res.json();
                 if (data.success) {
                     order.status = 'confirmed';
-                    order.statusText = '已确认';
-                    showToast('✅ 订单已确认');
+                    order.statusText = '宸茬‘璁?;
+                    showToast('鉁?璁㈠崟宸茬‘璁?);
                 } else {
-                    showToast('❌ ' + (data.message || '更新失败'));
+                    showToast('鉂?' + (data.message || '鏇存柊澶辫触'));
                 }
             } catch(e) {
-                // 即使API失败，也更新本地状态
-                order.status = 'confirmed';
-                order.statusText = '已确认';
-                showToast('✅ 订单已确认');
+                // 鍗充娇API澶辫触锛屼篃鏇存柊鏈湴鐘舵€?                order.status = 'confirmed';
+                order.statusText = '宸茬‘璁?;
+                showToast('鉁?璁㈠崟宸茬‘璁?);
             }
             closeConfirmModal();
             renderOrders();
@@ -311,12 +307,12 @@
         }
 
         async function cancelOrder(orderId) {
-            if (!confirm('确定要拒绝此订单吗？')) return;
+            if (!confirm('纭畾瑕佹嫆缁濇璁㈠崟鍚楋紵')) return;
             const order = orders.find(o => o.id === orderId);
             if (!order) return;
             
             try {
-                const res = await fetch('/api/orders', {
+                const res = await fetch('/api/order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -329,10 +325,10 @@
             } catch(e) {}
             
             order.status = 'cancelled';
-            order.statusText = '已拒绝';
+            order.statusText = '宸叉嫆缁?;
             renderOrders();
             updateStats();
-            showToast('❌ 订单已拒绝');
+            showToast('鉂?璁㈠崟宸叉嫆缁?);
         }
 
         function showToast(msg) {
