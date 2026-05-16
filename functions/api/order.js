@@ -186,9 +186,9 @@ export async function onRequestGet(context) {
       
       const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
       
-      // 查询最近的订单（最多50条）
+      // 查询最近的订单（最多50条，按创建时间倒序）
       const listRes = await fetch(
-        `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BOOKING_TABLE_ID}/records?page_size=50&sort=-created_time`,
+        `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BOOKING_TABLE_ID}/records?page_size=50`,
         {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         }
