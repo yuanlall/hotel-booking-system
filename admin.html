@@ -28,6 +28,18 @@
         .stat-income .stat-value { color: #ff4d4f; }
         .stat-label { font-size: 12px; color: #999; margin-top: 4px; }
         
+        /* 日期选择器 */
+        .date-picker-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 12px; background: #fafafa; border-radius: 10px; }
+        .date-picker-label { font-size: 13px; color: #666; white-space: nowrap; }
+        .date-picker-input { flex: 1; padding: 8px 12px; border: 1.5px solid #d9d9d9; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .date-picker-input:focus { border-color: #ff6b35; }
+        .date-nav-btn { width: 36px; height: 36px; border: none; border-radius: 8px; background: #fff; font-size: 18px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .date-nav-btn:active { background: #f0f0f0; }
+        .date-today-btn { padding: 6px 14px; border: none; border-radius: 8px; background: #ff6b35; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .date-today-btn:active { opacity: 0.85; }
+        .selected-date-display { font-size: 13px; color: #999; text-align: center; margin-top: 6px; }
+        .selected-date-display strong { color: #ff6b35; font-size: 15px; }
+
         /* 订单卡片 */
         .order-card { border: 1.5px solid #f0f0f0; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
         .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -78,6 +90,10 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+
+        /* 当日订单提示 */
+        .day-orders-hint { font-size: 12px; color: #999; margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; line-height: 1.6; }
+        .day-orders-hint .room-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -106,10 +122,21 @@
     </div>
 
     <div class="content">
-        <!-- 房态管理（基于订单自动计算） -->
+        <!-- 房态管理（按日期查看） -->
         <div class="section">
-            <div class="section-title">🛏️ 房态管理（自动计算）</div>
+            <div class="section-title">🛏️ 房态管理（按日期）</div>
+            
+            <!-- 日期选择器 -->
+            <div class="date-picker-row">
+                <button class="date-nav-btn" onclick="changeDate(-1)">◀</button>
+                <input type="date" class="date-picker-input" id="datePicker" onchange="onDateChange()">
+                <button class="date-nav-btn" onclick="changeDate(1)">▶</button>
+                <button class="date-today-btn" onclick="goToday()">今天</button>
+            </div>
+            <div class="selected-date-display" id="dateDisplay"></div>
+
             <div id="roomManager"></div>
+            <div id="dayOrdersHint" class="day-orders-hint" style="display:none;"></div>
         </div>
 
         <!-- 订单列表 -->
@@ -122,10 +149,11 @@
         <div class="section" style="background:#f0f7ff;">
             <div class="section-title" style="color:#1890ff;">💡 操作提示</div>
             <div style="font-size:13px;color:#666;line-height:1.8;">
-                1. 房态根据「待确认+已确认」订单自动计算<br>
-                2. 点击「确认」→ 订单状态更新 + 房量自动扣减<br>
-                3. 点击「拒绝」→ 订单取消 + 房量自动释放<br>
-                4. 数据每30秒自动刷新
+                1. 选择日期查看当天各房型剩余房量<br>
+                2. 房量根据「待确认+已确认」订单自动计算<br>
+                3. 点击「确认」→ 订单状态更新 + 房量自动扣减<br>
+                4. 点击「拒绝」→ 订单取消 + 房量自动释放<br>
+                5. 数据每30秒自动刷新
             </div>
         </div>
     </div>
@@ -146,6 +174,7 @@
         // ========== 数据状态 ==========
         let orders = [];
         let currentOrderId = null;
+        let selectedDate = null; // 当前选择的日期 YYYY-MM-DD
 
         // 房型配置（总库存）
         const ROOM_CONFIG = [
@@ -163,9 +192,76 @@
 
         // ========== 初始化 ==========
         document.addEventListener('DOMContentLoaded', () => {
+            // 默认选中今天
+            initDatePicker();
             loadOrders();
             setInterval(loadOrders, 30000);
         });
+
+        function initDatePicker() {
+            const picker = document.getElementById('datePicker');
+            const today = new Date();
+            selectedDate = formatDate(today);
+            picker.value = selectedDate;
+            updateDateDisplay();
+        }
+
+        // ========== 日期工具函数 ==========
+        function formatDate(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function formatDisplayDate(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            const m = d.getMonth() + 1;
+            const day = d.getDate();
+            const w = weekDays[d.getDay()];
+            return `${m}月${day}日 ${w}`;
+        }
+
+        function parseDate(dateStr) {
+            return new Date(dateStr + 'T00:00:00');
+        }
+
+        function isBetween(dateStr, startStr, endStr) {
+            return dateStr >= startStr && dateStr <= endStr;
+        }
+
+        function onDateChange() {
+            selectedDate = document.getElementById('datePicker').value;
+            updateDateDisplay();
+            renderRoomManager();
+        }
+
+        function changeDate(delta) {
+            const d = parseDate(selectedDate);
+            d.setDate(d.getDate() + delta);
+            selectedDate = formatDate(d);
+            document.getElementById('datePicker').value = selectedDate;
+            updateDateDisplay();
+            renderRoomManager();
+        }
+
+        function goToday() {
+            selectedDate = formatDate(new Date());
+            document.getElementById('datePicker').value = selectedDate;
+            updateDateDisplay();
+            renderRoomManager();
+        }
+
+        function updateDateDisplay() {
+            const el = document.getElementById('dateDisplay');
+            const today = formatDate(new Date());
+            if (selectedDate === today) {
+                el.innerHTML = `当前查看：<strong>今天 ${formatDisplayDate(selectedDate)}</strong>`;
+            } else {
+                el.innerHTML = `当前查看：<strong>${formatDisplayDate(selectedDate)}</strong>`;
+            }
+        }
 
         // ========== 加载订单（从飞书表格）==========
         async function loadOrders() {
@@ -186,18 +282,36 @@
             updateStats();
         }
 
-        // ========== 渲染：基于订单自动计算房态 ==========
+        // ========== 渲染：基于选定日期计算房态 ==========
         function renderRoomManager() {
             const el = document.getElementById('roomManager');
+            if (!selectedDate) return;
 
-            // 统计每个房型被占用的数量（待确认+已确认的订单都算占用）
+            // 统计选定日期每个房型被占用的数量
+            // 只统计「待确认+已确认」且入住日期覆盖了选定日期的订单
             const occupied = {};
             ROOM_CONFIG.forEach(r => occupied[r.id] = 0);
 
+            // 收集当天的占用详情（用于展示）
+            const dayOrderDetails = {};
+
             orders.filter(o => o.status === 'confirmed' || o.status === 'pending').forEach(order => {
                 const roomId = ROOM_NAME_TO_ID[order.roomName];
-                if (roomId) {
-                    occupied[roomId] += (order.nights || 1);
+                if (!roomId) return;
+
+                // 解析订单的入住和退房日期
+                const checkin = order.checkin;   // 格式 YYYY-MM-DD
+                const checkout = order.checkout;
+
+                // 检查选定日期是否在 [checkin, checkout) 区间内
+                if (isBetween(selectedDate, checkin, checkout)) {
+                    occupied[roomId] += 1;
+
+                    // 记录详情
+                    if (!dayOrderDetails[roomId]) dayOrderDetails[roomId] = [];
+                    dayOrderDetails[roomId].push(
+                        `${order.guestName}(${checkin}→${checkout})`
+                    );
                 }
             });
 
@@ -206,6 +320,7 @@
                 const left = Math.max(0, r.totalStock - used);
                 const isAvailable = left > 0;
                 const isLow = left <= 1 && left > 0;
+                const details = dayOrderDetails[r.id] || [];
 
                 return `
                 <div class="room-row">
@@ -229,6 +344,22 @@
                     </button>
                 </div>`;
             }).join('');
+
+            // 显示当日占用详情
+            const hintEl = document.getElementById('dayOrdersHint');
+            const allDetails = Object.entries(dayOrderDetails).filter(([_, list]) => list.length > 0);
+            if (allDetails.length > 0) {
+                const roomIdToName = {};
+                ROOM_CONFIG.forEach(r => roomIdToName[r.id] = r.name);
+                hintEl.innerHTML = '<strong>📌 ' + formatDisplayDate(selectedDate) + ' 占用明细：</strong><br>' +
+                    allDetails.map(([roomId, list]) =>
+                        `· <strong>${roomIdToName[roomId]}</strong>：${list.join('、')}`
+                    ).join('<br>');
+                hintEl.style.display = 'block';
+            } else {
+                hintEl.innerHTML = '<strong>✅ ' + formatDisplayDate(selectedDate) + '</strong> 暂无订单占用，所有房型满房';
+                hintEl.style.display = 'block';
+            }
         }
 
         // ========== 渲染订单列表 ==========
@@ -318,14 +449,14 @@
                 if (data.success) {
                     order.status = 'confirmed';
                     order.statusText = '已确认';
-                    showToast('✅ 订单已确认，房量已扣减');
+                    showToast('✅ 订单已确认');
                 } else {
                     showToast('❌ ' + (data.message || '更新失败'));
                 }
             } catch(e) {
                 order.status = 'confirmed';
                 order.statusText = '已确认';
-                showToast('✅ 订单已确认，房量已扣减');
+                showToast('✅ 订单已确认');
             }
             closeConfirmModal();
             renderOrders();
