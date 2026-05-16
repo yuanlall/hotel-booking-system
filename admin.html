@@ -270,7 +270,7 @@
         function updateStats() {
             const pending = orders.filter(o => o.status === 'pending').length;
             const confirmed = orders.filter(o => o.status === 'confirmed').length;
-            const todayIncome = orders.filter(o => o.status === 'confirmed').reduce((sum, o) => sum + (o.finalTotal || 0), 0);
+            const todayIncome = orders.filter(o => o.status === 'confirmed').reduce((sum, o) => sum + (Number(o.finalTotal) || 0), 0);
             
             document.getElementById('statPending').textContent = pending;
             document.getElementById('statConfirmed').textContent = confirmed;
