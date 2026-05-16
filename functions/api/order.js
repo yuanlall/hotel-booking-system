@@ -284,61 +284,6 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
   const action = url.searchParams.get('action');
 
-  // ===== 一次性同步：飞书 → D1 =====
-  if (action === 'sync-from-feishu') {
-    if (!env.DB || !env.FEISHU_APP_ID || !env.FEISHU_APP_SECRET || !env.FEISHU_BITABLE_APP_TOKEN || !env.FEISHU_BOOKING_TABLE_ID) {
-      return jsonResponse({ success: false, message: 'D1或飞书配置缺失' });
-    }
-    try {
-      const accessToken = await getFeishuToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
-      const listRes = await fetch(
-        `https://open.feishu.cn/open-apis/bitable/v1/apps/${env.FEISHU_BITABLE_APP_TOKEN}/tables/${env.FEISHU_BOOKING_TABLE_ID}/records?page_size=100`,
-        { headers: { 'Authorization': `Bearer ${accessToken}` } }
-      );
-      const listData = await listRes.json();
-      if (listData.code !== 0) {
-        return jsonResponse({ success: false, message: '飞书读取失败: ' + listData.msg });
-      }
-
-      const items = listData.data.items || [];
-      let inserted = 0, skipped = 0, errors = 0;
-
-      for (const item of items) {
-        const f = item.fields;
-        const orderId = f['订单号'];
-        if (!orderId) { errors++; continue; }
-
-        // 检查 D1 是否已存在
-        const existing = await env.DB.prepare('SELECT id FROM orders WHERE order_id = ?').bind(orderId).first();
-        if (existing) { skipped++; continue; }
-
-        const statusMap = { '已确认': 'confirmed', '已拒绝': 'cancelled', '待确认': 'pending' };
-        const status = statusMap[f['订单状态']] || 'pending';
-
-        try {
-          await env.DB.prepare(`
-            INSERT INTO orders (order_id, hotel, room_name, checkin, checkout, nights, guest_name, guest_phone, note, original_total, final_total, status, status_text, feishu_record_id, submitted_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `).bind(
-            orderId, f['酒店名称'] || '', f['房型'] || '',
-            f['入住日期'] || '', f['离店日期'] || '',
-            Number(f['入住天数']) || 1,
-            f['入住人'] || '', f['手机号'] || '',
-            f['备注'] || '',
-            Number(f['实付金额']) || 0, Number(f['实付金额']) || 0,
-            status, f['订单状态'] || '待确认',
-            item.record_id, f['提交时间'] || ''
-          ).run();
-          inserted++;
-        } catch(e) { errors++; }
-      }
-
-      return jsonResponse({ success: true, message: `同步完成: 新增${inserted}, 跳过${skipped}, 失败${errors}`, total: items.length, inserted, skipped, errors });
-    } catch(e) {
-      return jsonResponse({ success: false, message: '同步异常: ' + e.message });
-    }
-  }
-
   if (action === 'list') {
     // ===== 优先从 D1 读取 =====
     if (env.DB) {
