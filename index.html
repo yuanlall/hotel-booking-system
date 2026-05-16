@@ -13,9 +13,11 @@
         a { color: inherit; text-decoration: none; }
 
         /* ===== Hero 轮播（更抢眼的开场） ===== */
-        .hero-wrap { position: relative; width: 100%; height: 240px; overflow: hidden; background: #e8e8e8; }
-        .hero-slider { display: flex; height: 100%; }
-        .hero-slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; }
+        .hero-wrap { position: relative; width: 100%; height: 280px; overflow: hidden; background: #e8e8e8; }
+        .hero-slider { display: flex; height: 100%; transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .hero-slide { min-width: 100%; height: 100%; position: relative; }
+        .hero-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .hero-slide::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(transparent, rgba(0,0,0,0.4)); pointer-events: none; }
         .hero-badge { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.5); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(4px); z-index: 2; }
         .hero-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; z-index: 2; }
         .hero-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.6); transition: all 0.3s; }
@@ -168,11 +170,7 @@
 
     <!-- ===== Hero 轮播 ===== -->
     <div class="hero-wrap">
-        <div class="hero-slider" id="heroSlider">
-            <div class="hero-slide" style="background:#4a90d9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;">🏨 酒店大堂</div>
-            <div class="hero-slide" style="background:#67b26b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;">🛏️ 豪华客房</div>
-            <div class="hero-slide" style="background:#e87b35;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;">🌅 顶层景观</div>
-        </div>
+        <div class="hero-slider" id="heroSlider"></div>
         <div class="hero-badge">官方直营 0佣金</div>
         <div class="hero-dots" id="heroDots"></div>
     </div>
@@ -382,11 +380,11 @@
                 { text: '新装修', type: '' }
             ],
             photos: [
-                'https://picsum.photos/400/300?random=1',
-                'https://picsum.photos/200/200?random=2',
-                'https://picsum.photos/200/200?random=3',
-                'https://picsum.photos/200/200?random=4',
-                'https://picsum.photos/200/200?random=5'
+                'assets/photo-grid-1.jpg',
+                'assets/photo-grid-2.jpg',
+                'assets/photo-grid-3.jpg',
+                'assets/photo-grid-4.jpg',
+                'assets/photo-grid-5.jpg'
             ],
             rooms: [
                 { id: 'standard', name: '标准双床房', price: 279, features: ['30m²', '双床1.2m', '免费WiFi', '含早'], stock: 8 },
@@ -541,14 +539,18 @@
             const slider = document.getElementById('heroSlider');
             const dots = document.getElementById('heroDots');
             
-            // 构建真实轮播 slide
+            // 真实酒店照片轮播
             slider.innerHTML = '';
-            const bgColors = ['#4a90d9','#67b26b','#e87b35','#8b6bbf'];
-            bgColors.forEach((color, i) => {
+            const slides = [
+                { src: './assets/hero-exterior.jpg', alt: '酒店外观' },
+                { src: './assets/hero-lobby.jpg', alt: '酒店大厅' },
+                { src: './assets/hero-room.jpg', alt: '豪华客房' },
+                { src: './assets/hero-restaurant.jpg', alt: '餐厅' }
+            ];
+            slides.forEach((item, i) => {
                 const slide = document.createElement('div');
                 slide.className = 'hero-slide';
-                slide.style.background = color;
-                slide.innerHTML = `<div style="text-align:center;color:#fff;padding-top:80px;font-size:18px;font-weight:600;">🏨 香江城迹酒店<br><span style="font-size:13px;font-weight:400;opacity:0.8;margin-top:8px;display:block;">距西湖步行5分钟 · 免费停车</span></div>`;
+                slide.innerHTML = `<img src="${item.src}" alt="${item.alt}" loading="${i === 0 ? 'eager' : 'lazy'}">`;
                 slider.appendChild(slide);
                 
                 const dot = document.createElement('div');
@@ -558,7 +560,7 @@
             });
 
             setInterval(() => {
-                currentSlide = (currentSlide + 1) % 4;
+                currentSlide = (currentSlide + 1) % slides.length;
                 slider.style.transform = `translateX(-${currentSlide * 100}%)`;
                 document.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
             }, 4000);
