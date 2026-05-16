@@ -12,14 +12,21 @@
         .header h1 { font-size: 20px; font-weight: 700; }
         .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
         
-        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: -20px -8px 0; }
-        .stat-card { background: #fff; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .stat-value { font-size: 28px; font-weight: 700; color: #ff6b35; }
-        .stat-label { font-size: 12px; color: #999; margin-top: 4px; }
-        
         .content { padding: 16px 8px; }
         .section { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
         .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        
+        /* 统计卡片 */
+        .stats-row { display: flex; gap: 12px; margin-bottom: 12px; }
+        .stat-card { flex: 1; text-align: center; padding: 14px; border-radius: 10px; }
+        .stat-pending { background: #fff7e6; }
+        .stat-confirmed { background: #f6ffed; }
+        .stat-income { background: #fff1f0; }
+        .stat-value { font-size: 26px; font-weight: 700; }
+        .stat-pending .stat-value { color: #fa8c16; }
+        .stat-confirmed .stat-value { color: #52c41a; }
+        .stat-income .stat-value { color: #ff4d4f; }
+        .stat-label { font-size: 12px; color: #999; margin-top: 4px; }
         
         /* 订单卡片 */
         .order-card { border: 1.5px solid #f0f0f0; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
@@ -47,7 +54,7 @@
         .room-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .room-row:last-child { border-bottom: none; }
         .room-name { font-size: 14px; font-weight: 500; }
-        .room-stock-info { font-size: 12px; color: #666; }
+        .room-stock-info { font-size: 12px; color: #666; margin-top: 2px; }
         .stock-btn { padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 1px solid #d9d9d9; background: #fff; }
         .stock-btn.on { border-color: #52c41a; color: #52c41a; }
         .stock-btn.off { border-color: #ff4d4f; color: #ff4d4f; }
@@ -65,62 +72,60 @@
         .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
         .modal-btn-cancel { background: #f5f5f5; color: #666; }
         .modal-btn-confirm { background: #ff6b35; color: #fff; }
+
+        .stock-warning { animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>🏨 酒店管理后台</h1>
-        <p>实时订单管理 · 房态控制</p>
+        <p>实时订单管理 · 房态自动同步</p>
     </div>
 
     <!-- 统计卡片 -->
-    <div style="padding: 0 8px; margin-top: -10px;">
-        <div class="section" style="padding: 14px;">
-            <div style="display: flex; gap: 12px;">
-                <div style="flex:1;text-align:center;padding:12px;background:#fff7e6;border-radius:10px;">
-                    <div style="font-size:26px;font-weight:700;color:#fa8c16;" id="statPending">0</div>
-                    <div style="font-size:12px;color:#999;margin-top:4px;">待确认</div>
-                </div>
-                <div style="flex:1;text-align:center;padding:12px;background:#f6ffed;border-radius:10px;">
-                    <div style="font-size:26px;font-weight:700;color:#52c41a;" id="statConfirmed">0</div>
-                    <div style="font-size:12px;color:#999;margin-top:4px;">已确认</div>
-                </div>
-                <div style="flex:1;text-align:center;padding:12px;background:#fff1f0;border-radius:10px;">
-                    <div style="font-size:26px;font-weight:700;color:#ff4d4f;" id="statToday">0</div>
-                    <div style="font-size:12px;color:#999;margin-top:4px;">今日收入</div>
-                </div>
+    <div style="padding: 0 8px;">
+        <div class="stats-row">
+            <div class="stat-card stat-pending">
+                <div class="stat-value" id="statPending">0</div>
+                <div class="stat-label">待确认</div>
+            </div>
+            <div class="stat-card stat-confirmed">
+                <div class="stat-value" id="statConfirmed">0</div>
+                <div class="stat-label">已确认</div>
+            </div>
+            <div class="stat-card stat-income">
+                <div class="stat-value" id="statToday">0</div>
+                <div class="stat-label">今日收入</div>
             </div>
         </div>
     </div>
 
     <div class="content">
-        <!-- 房态管理 -->
+        <!-- 房态管理（基于订单自动计算） -->
         <div class="section">
-            <div class="section-title">🛏️ 房态管理</div>
+            <div class="section-title">🛏️ 房态管理（自动计算）</div>
             <div id="roomManager"></div>
         </div>
 
         <!-- 订单列表 -->
         <div class="section">
-            <div class="section-title">📋 今日订单</div>
-            <div id="orderList">
-                <div class="empty">
-                    <div class="empty-icon">📭</div>
-                    <div>暂无订单</div>
-                    <div style="font-size:12px;margin-top:6px;">有订单时会在这里显示</div>
-                </div>
-            </div>
+            <div class="section-title">📋 全部订单</div>
+            <div id="orderList"></div>
         </div>
 
         <!-- 操作说明 -->
         <div class="section" style="background:#f0f7ff;">
             <div class="section-title" style="color:#1890ff;">💡 操作提示</div>
             <div style="font-size:13px;color:#666;line-height:1.8;">
-                1. 收到微信通知后，在这里确认订单<br>
-                2. 点击「确认」会给客人发短信通知<br>
-                3. 点击「联系电话」可直接联系客人<br>
-                4. 实时调整房态，避免超售
+                1. 房态根据「待确认+已确认」订单自动计算<br>
+                2. 点击「确认」→ 订单状态更新 + 房量自动扣减<br>
+                3. 点击「拒绝」→ 订单取消 + 房量自动释放<br>
+                4. 数据每30秒自动刷新
             </div>
         </div>
     </div>
@@ -140,24 +145,25 @@
     <script>
         // ========== 数据状态 ==========
         let orders = [];
-        let roomStatus = {
-            standard: true,
-            king: true,
-            suite: true
-        };
         let currentOrderId = null;
 
-        const ROOM_NAMES = {
-            standard: '标准双床房',
-            king: '豪华大床房',
-            suite: '行政套房'
+        // 房型配置（总库存）
+        const ROOM_CONFIG = [
+            { id: 'standard', name: '标准双床房', totalStock: 8 },
+            { id: 'king', name: '豪华大床房', totalStock: 5 },
+            { id: 'suite', name: '行政套房', totalStock: 2 }
+        ];
+
+        // 房型名称 → ID 映射
+        const ROOM_NAME_TO_ID = {
+            '标准双床房': 'standard',
+            '豪华大床房': 'king',
+            '行政套房': 'suite'
         };
 
         // ========== 初始化 ==========
         document.addEventListener('DOMContentLoaded', () => {
-            renderRoomManager();
             loadOrders();
-            // 每30秒刷新一次
             setInterval(loadOrders, 30000);
         });
 
@@ -175,33 +181,57 @@
                 console.error('Load orders error:', e);
                 orders = [];
             }
+            renderRoomManager();  // 先刷新房态
             renderOrders();
             updateStats();
         }
 
-        // ========== 渲染 ==========
+        // ========== 渲染：基于订单自动计算房态 ==========
         function renderRoomManager() {
             const el = document.getElementById('roomManager');
-            const rooms = [
-                { id: 'standard', name: '标准双床房', stock: 8 },
-                { id: 'king', name: '豪华大床房', stock: 5 },
-                { id: 'suite', name: '行政套房', stock: 2 }
-            ];
-            
-            el.innerHTML = rooms.map(r => `
+
+            // 统计每个房型被占用的数量（待确认+已确认的订单都算占用）
+            const occupied = {};
+            ROOM_CONFIG.forEach(r => occupied[r.id] = 0);
+
+            orders.filter(o => o.status === 'confirmed' || o.status === 'pending').forEach(order => {
+                const roomId = ROOM_NAME_TO_ID[order.roomName];
+                if (roomId) {
+                    occupied[roomId] += (order.nights || 1);
+                }
+            });
+
+            el.innerHTML = ROOM_CONFIG.map(r => {
+                const used = occupied[r.id];
+                const left = Math.max(0, r.totalStock - used);
+                const isAvailable = left > 0;
+                const isLow = left <= 1 && left > 0;
+
+                return `
                 <div class="room-row">
                     <div>
                         <div class="room-name">${r.name}</div>
-                        <div class="room-stock-info">剩余 <span id="stock-${r.id}">${roomStatus[r.id] ? r.stock : 0}</span> 间</div>
+                        <div class="room-stock-info">
+                            总共 ${r.totalStock} 间 · 
+                            已用 <span style="color:${used > 0 ? '#ff4d4f' : '#999'};font-weight:600;">${used}</span> · 
+                            剩余 
+                            <span id="stock-${r.id}" 
+                                  style="color:${left <= 0 ? '#ff4d4f' : isLow ? '#fa8c16' : '#52c41a'};font-weight:700;"
+                                  ${isLow ? 'class="stock-warning"' : ''}>
+                                ${left}
+                            </span> 间
+                        </div>
                     </div>
-                    <button class="stock-btn ${roomStatus[r.id] ? 'on' : 'off'}" 
-                            onclick="toggleRoom('${r.id}', ${r.stock})">
-                        ${roomStatus[r.id] ? '可订' : '关房'}
+                    <button class="stock-btn ${isAvailable ? 'on' : 'off'}"
+                            onclick="toggleRoom('${r.id}')"
+                            ${!isAvailable ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>
+                        ${isAvailable ? (isLow ? '紧张' : '可订') : '满房'}
                     </button>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
+        // ========== 渲染订单列表 ==========
         function renderOrders() {
             const el = document.getElementById('orderList');
             
@@ -247,16 +277,9 @@
             document.getElementById('statToday').textContent = todayIncome;
         }
 
-        // ========== 房态控制 ==========
-        function toggleRoom(roomId, maxStock) {
-            roomStatus[roomId] = !roomStatus[roomId];
-            document.getElementById(`stock-${roomId}`).textContent = roomStatus[roomId] ? maxStock : 0;
-            const btn = event.target;
-            btn.className = `stock-btn ${roomStatus[roomId] ? 'on' : 'off'}`;
-            btn.textContent = roomStatus[roomId] ? '可订' : '关房';
-            
-            // TODO: 同步到后端
-            showToast(roomStatus[roomId] ? '房型已开启' : '房型已关闭');
+        // ========== 房态控制（预留）==========
+        function toggleRoom(roomId) {
+            showToast('🔧 手动关房/开房功能开发中...');
         }
 
         // ========== 订单操作 ==========
@@ -295,19 +318,19 @@
                 if (data.success) {
                     order.status = 'confirmed';
                     order.statusText = '已确认';
-                    showToast('✅ 订单已确认');
+                    showToast('✅ 订单已确认，房量已扣减');
                 } else {
                     showToast('❌ ' + (data.message || '更新失败'));
                 }
             } catch(e) {
-                // 即使API失败，也更新本地状态
                 order.status = 'confirmed';
                 order.statusText = '已确认';
-                showToast('✅ 订单已确认');
+                showToast('✅ 订单已确认，房量已扣减');
             }
             closeConfirmModal();
             renderOrders();
             updateStats();
+            renderRoomManager(); // 确认后刷新房态
         }
 
         async function cancelOrder(orderId) {
@@ -332,7 +355,8 @@
             order.statusText = '已拒绝';
             renderOrders();
             updateStats();
-            showToast('❌ 订单已拒绝');
+            renderRoomManager(); // 拒绝后释放房量
+            showToast('❌ 订单已拒绝，房量已释放');
         }
 
         function showToast(msg) {
