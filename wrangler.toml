@@ -6,4 +6,4 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "hotel-booking-db"
-database_id = "YOUR_DATABASE_ID_HERE"
+database_id = "88a14559-5593-4328-8935-e926a2176ec2"
