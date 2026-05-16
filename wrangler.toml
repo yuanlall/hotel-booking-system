@@ -1,0 +1,9 @@
+name = "hotel-booking-system"
+compatibility_date = "2024-01-01"
+
+# D1 数据库绑定
+# 创建数据库后，把下面的 database_id 替换为实际值
+[[d1_databases]]
+binding = "DB"
+database_name = "hotel-booking-db"
+database_id = "YOUR_DATABASE_ID_HERE"
