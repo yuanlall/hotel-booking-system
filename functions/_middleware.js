@@ -9,7 +9,8 @@ const PUBLIC_PATHS = [
 // 需要鉴权的动作（通过 action 参数区分）
 const PROTECTED_ACTIONS = {
   '/api/order': { GET: ['list'], POST: ['updateStatus'] },
-  '/api/coupon': { GET: ['init'] }
+  '/api/coupon': { GET: ['init'] },
+  '/api/config': { POST: ['update_hotel', 'update_room', 'update_coupon'] }
 };
 
 // ========== 鉴权核心逻辑（内联，因为 Pages Function 不支持跨文件 import） ==========

@@ -443,7 +443,8 @@
 
     <script>
         // ========== 酒店配置数据 ==========
-        const HOTEL = {
+        // 默认硬编码配置（API 不可用时 fallback）
+        const DEFAULT_HOTEL = {
             name: '香江城迹酒店',
             address: '赣州市章贡区长冈路13号达芬奇国际中心9栋',
             phone: '057112345678',
@@ -481,6 +482,43 @@
             ]
         };
 
+        // 运行时 HOTEL 对象（会被 API 数据覆盖）
+        let HOTEL = { ...DEFAULT_HOTEL };
+
+        // ========== 从 D1 加载配置 ==========
+        async function loadHotelConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+                if (data.success && data.config) {
+                    const cfg = data.config;
+                    if (cfg.hotel) {
+                        HOTEL.name = cfg.hotel.name;
+                        HOTEL.address = cfg.hotel.address;
+                        HOTEL.phone = cfg.hotel.phone;
+                        HOTEL.rating = cfg.hotel.rating;
+                        HOTEL.reviewCount = cfg.hotel.reviewCount;
+                        if (cfg.hotel.tags && cfg.hotel.tags.length) {
+                            HOTEL.tags = cfg.hotel.tags.map((t, i) => ({ text: t, type: i === 0 ? 'orange' : '' }));
+                        }
+                    }
+                    if (cfg.rooms && cfg.rooms.length) {
+                        HOTEL.rooms = cfg.rooms.map(r => ({
+                            id: r.id, name: r.name, price: r.price,
+                            features: [r.area, r.bedType, ...(r.features || [])].filter(Boolean),
+                            stock: r.stock
+                        }));
+                    }
+                    if (cfg.coupons && cfg.coupons.length) {
+                        HOTEL.coupons = cfg.coupons.map(c => ({
+                            id: c.id, name: c.name, amount: c.amount,
+                            condition: c.condition, desc: c.desc, expire: c.expire
+                        }));
+                    }
+                }
+            } catch(e) {}
+        }
+
         // ========== 全局状态 ==========
         let selectedRoom = null;
         let selectedCheckin = null;
@@ -491,27 +529,27 @@
         let roomAvailability = {}; // 从后端获取真实房态
 
         // ========== 初始化 ==========
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 先加载 API 配置，再渲染页面
+            await loadHotelConfig();
             initDates();
             renderHotelInfo();
             renderRooms();
             renderPhotos();
             renderReviews();
+            renderCoupons();
             startAutoSlide();
             fetchRoomAvailability();
             // 检测分享裂变参数 ?ref=推荐人手机号
             const urlParams = new URLSearchParams(window.location.search);
             const refPhone = urlParams.get('ref');
             if (refPhone) {
-                // 存储推荐人手机号，用于后续领券裂变
                 sessionStorage.setItem('referrerPhone', refPhone);
-                // 页面顶部显示来自朋友的提示
                 showReferrerTip(refPhone);
             }
             // 从localStorage恢复领券手机号，加载已领取优惠券
             claimPhone = localStorage.getItem('claimPhone') || '';
             if (claimPhone) loadClaimedCoupons(claimPhone);
-            else renderCoupons();
         });
 
         // ========== 渲染 ==========
@@ -918,26 +956,30 @@
         // ========== 房态获取 ==========
         async function fetchRoomAvailability() {
             try {
-                const res = await fetch('/api/order?action=list');
+                const today = formatDate(new Date());
+                const res = await fetch(`/api/config?action=availability&date=${today}`);
                 const data = await res.json();
-                if (data.success && data.orders) {
-                    computeAvailability(data.orders);
+                if (data.success && data.availability) {
+                    roomAvailability = data.availability;
+                    renderRooms();
                 }
             } catch(e) {
-                // 后端暂不可用，用默认库存
+                // API 不可用，用 HOTEL 配置中的默认库存
+                HOTEL.rooms.forEach(r => { roomAvailability[r.id] = r.stock; });
+                renderRooms();
             }
         }
 
         function computeAvailability(orders) {
-            const stockConfig = { standard: 8, king: 5, suite: 2 };
-            const roomNameMap = {
-                '标准双床房': 'standard',
-                '豪华大床房': 'king',
-                '行政套房': 'suite'
-            };
+            // 从当前 HOTEL 配置获取总库存（已从 API 加载）
+            const stockConfig = {};
+            HOTEL.rooms.forEach(r => { stockConfig[r.id] = r.stock; });
+            const roomNameMap = {};
+            HOTEL.rooms.forEach(r => { roomNameMap[r.name] = r.id; });
             
             // 统计当前已确认占用
-            const occupied = { standard: 0, king: 0, suite: 0 };
+            const occupied = {};
+            HOTEL.rooms.forEach(r => { occupied[r.id] = 0; });
             const today = formatDate(new Date());
             
             orders.filter(o => o.status === 'confirmed').forEach(o => {
@@ -954,11 +996,10 @@
                 }
             });
             
-            roomAvailability = {
-                standard: Math.max(0, stockConfig.standard - (occupied.standard || 0)),
-                king: Math.max(0, stockConfig.king - (occupied.king || 0)),
-                suite: Math.max(0, stockConfig.suite - (occupied.suite || 0))
-            };
+            roomAvailability = {};
+            HOTEL.rooms.forEach(r => {
+                roomAvailability[r.id] = Math.max(0, (stockConfig[r.id] || 0) - (occupied[r.id] || 0));
+            });
             
             renderRooms(); // 重新渲染带真实房态的房型
         }
