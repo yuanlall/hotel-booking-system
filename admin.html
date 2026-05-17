@@ -553,10 +553,11 @@ function renderOrders() {
 function updateStats() {
     document.getElementById('statPending').textContent = orders.filter(o=>o.status==='pending').length;
     document.getElementById('statConfirmed').textContent = orders.filter(o=>o.status==='confirmed').length;
-    // 今日收入：今天（按服务器日期）确认的订单总金额
-    const todayStr = formatDate(new Date());
+    // 今日收入：今天确认的订单总金额（submittedAt格式: "2026/5/17 01:20"，需兼容匹配）
+    const today = new Date();
+    const todayYMD = today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate();
     document.getElementById('statToday').textContent = orders
-        .filter(o => o.status === 'confirmed' && o.submittedAt && o.submittedAt.includes(todayStr))
+        .filter(o => o.status === 'confirmed' && o.submittedAt && o.submittedAt.startsWith(todayYMD))
         .reduce((s, o) => s + (Number(o.finalTotal) || 0), 0);
 }
 
