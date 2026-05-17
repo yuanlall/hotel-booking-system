@@ -553,7 +553,11 @@ function renderOrders() {
 function updateStats() {
     document.getElementById('statPending').textContent = orders.filter(o=>o.status==='pending').length;
     document.getElementById('statConfirmed').textContent = orders.filter(o=>o.status==='confirmed').length;
-    document.getElementById('statToday').textContent = orders.filter(o=>o.status==='confirmed').reduce((s,o)=>s+(Number(o.finalTotal)||0),0);
+    // 今日收入：今天（按服务器日期）确认的订单总金额
+    const todayStr = formatDate(new Date());
+    document.getElementById('statToday').textContent = orders
+        .filter(o => o.status === 'confirmed' && o.submittedAt && o.submittedAt.includes(todayStr))
+        .reduce((s, o) => s + (Number(o.finalTotal) || 0), 0);
 }
 
 function toggleRoom(roomId) { showToast('🔧 手动关房/开房功能开发中...'); }
