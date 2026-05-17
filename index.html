@@ -164,6 +164,46 @@
         .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 300; display: none; white-space: nowrap; }
         .toast.show { display: block; animation: fadeIn 0.2s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ===== 浮动分享按钮 ===== */
+        .fab-share { position: fixed; right: 16px; bottom: 90px; width: 48px; height: 48px; background: linear-gradient(135deg, #ff6b35, #ff8c42); color: #fff; border: none; border-radius: 50%; font-size: 20px; box-shadow: 0 4px 16px rgba(255,107,53,0.4); cursor: pointer; z-index: 98; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; }
+        .fab-share:active { transform: scale(0.9); }
+
+        /* ===== 分享面板/卡片 ===== */
+        .share-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 250; align-items: flex-end; justify-content: center; }
+        .share-overlay.active { display: flex; }
+        .share-panel { background: #fff; border-radius: 18px 18px 0 0; width: 100%; max-width: 480px; padding: 20px 16px max(20px, env(safe-area-inset-bottom)); }
+        .share-panel-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
+        .share-panel-title { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 16px; color: #333; }
+        /* 分享卡片预览 */
+        .share-card { background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 14px; padding: 18px; margin-bottom: 18px; color: #fff; position: relative; overflow: hidden; }
+        .share-card::before { content: ''; position: absolute; top: -30px; right: -30px; width: 100px; height: 100px; background: rgba(255,107,53,0.15); border-radius: 50%; }
+        .share-card-hotel { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .share-card-price { font-size: 26px; font-weight: 700; color: #ff6b35; }
+        .share-card-price small { font-size: 14px; }
+        .share-card-tagline { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+        .share-card-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #ff6b35, #ff8c42); color: #fff; font-size: 10px; padding: 3px 8px; border-radius: 8px; font-weight: 600; }
+        /* 优惠券分享卡片 */
+        .share-card.coupon-style { background: linear-gradient(135deg, #fff5eb, #ffe8d6); color: #333; }
+        .share-card.coupon-style .share-card-hotel { color: #d46b08; }
+        .share-card.coupon-style .share-card-price { color: #ff6b35; }
+        .share-card.coupon-style .share-card-tagline { color: #888; }
+        .share-card.coupon-style .share-card-badge { background: linear-gradient(135deg, #fa8c16, #ffa940); }
+        /* 分享操作按钮 */
+        .share-actions { display: flex; gap: 12px; margin-bottom: 16px; }
+        .share-action-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border: 1.5px solid #f0f0f0; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.15s; }
+        .share-action-btn:active { background: #fafafa; border-color: #ff6b35; }
+        .share-action-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .share-action-icon.wechat { background: #07c160; color: #fff; }
+        .share-action-icon.link { background: #1890ff; color: #fff; }
+        .share-action-icon.moments { background: linear-gradient(135deg,#faad14,#ffc53d); color: #fff; }
+        .share-action-text { font-size: 11px; color: #666; font-weight: 500; }
+        /* 复制成功提示 */
+        .share-copy-tip { text-align: center; font-size: 13px; color: #52c41a; display: none; padding: 8px; background: #f6ffed; border-radius: 8px; }
+        .share-copy-tip.show { display: block; }
+        /* 优惠券区域内的分享按钮 */
+        .coupon-share-btn { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: #fa8c16; cursor: pointer; border: none; background: none; padding: 2px 6px; border-radius: 8px; transition: background 0.15s; }
+        .coupon-share-btn:active { background: #fff7e6; }
     </style>
 </head>
 <body>
@@ -217,7 +257,10 @@
     <div class="coupon-wrap">
         <div class="coupon-title">
             <span>🎫 领券更优惠</span>
-            <span style="font-size:12px;color:#fa8c16;cursor:pointer;">规则说明 →</span>
+            <span style="display:flex;align-items:center;gap:8px;">
+                <button class="coupon-share-btn" onclick="openSharePanel('coupon')">📤 分享领券</button>
+                <span style="font-size:12px;color:#fa8c16;cursor:pointer;">规则说明 →</span>
+            </span>
         </div>
         <div class="coupon-list" id="couponList"></div>
     </div>
@@ -364,6 +407,40 @@
     <!-- ===== Toast ===== -->
     <div class="toast" id="toast"></div>
 
+    <!-- ===== 浮动分享按钮 ===== -->
+    <button class="fab-share" onclick="openSharePanel('page')" title="分享">📤</button>
+
+    <!-- ===== 分享面板 ===== -->
+    <div class="share-overlay" id="shareOverlay" onclick="if(event.target===this)closeSharePanel()">
+        <div class="share-panel">
+            <div class="share-panel-handle"></div>
+            <div class="share-panel-title" id="sharePanelTitle">分享给好友</div>
+            <!-- 分享卡片预览 -->
+            <div class="share-card" id="shareCardPreview">
+                <span class="share-card-badge" id="shareCardBadge">官方直营</span>
+                <div class="share-card-hotel" id="shareCardHotel">香江城迹酒店</div>
+                <div class="share-card-price" id="shareCardPrice"><small>¥</small>279<span style="font-size:13px;color:rgba(255,255,255,0.6)"> 起/晚</span></div>
+                <div class="share-card-tagline" id="shareCardTagline">0佣金预订 · 微信扫码立减</div>
+            </div>
+            <!-- 分享操作 -->
+            <div class="share-actions">
+                <div class="share-action-btn" onclick="shareToWechat()">
+                    <div class="share-action-icon wechat">💬</div>
+                    <span class="share-action-text">微信好友</span>
+                </div>
+                <div class="share-action-btn" onclick="copyShareLink()">
+                    <div class="share-action-icon link">🔗</div>
+                    <span class="share-action-text">复制链接</span>
+                </div>
+                <div class="share-action-btn" onclick="shareToMoments()">
+                    <div class="share-action-icon moments">⭕</div>
+                    <span class="share-action-text">朋友圈</span>
+                </div>
+            </div>
+            <div class="share-copy-tip" id="shareCopyTip">✅ 链接已复制，快去发给朋友吧！</div>
+        </div>
+    </div>
+
     <script>
         // ========== 酒店配置数据 ==========
         const HOTEL = {
@@ -422,6 +499,15 @@
             renderReviews();
             startAutoSlide();
             fetchRoomAvailability();
+            // 检测分享裂变参数 ?ref=推荐人手机号
+            const urlParams = new URLSearchParams(window.location.search);
+            const refPhone = urlParams.get('ref');
+            if (refPhone) {
+                // 存储推荐人手机号，用于后续领券裂变
+                sessionStorage.setItem('referrerPhone', refPhone);
+                // 页面顶部显示来自朋友的提示
+                showReferrerTip(refPhone);
+            }
             // 从localStorage恢复领券手机号，加载已领取优惠券
             claimPhone = localStorage.getItem('claimPhone') || '';
             if (claimPhone) loadClaimedCoupons(claimPhone);
@@ -779,9 +865,13 @@
             let referrerPhone = '';
             if (couponId === 'share' && claimedCoupons.some(cc => cc.id === 'share')) {
                 // 已经领过分享券，这次是裂变领取
-                // 从URL参数获取推荐人手机号（裂变链接格式：?ref=138xxxx）
-                const urlParams = new URLSearchParams(window.location.search);
-                referrerPhone = urlParams.get('ref') || '';
+                // 优先从 sessionStorage 获取（通过分享链接 ?ref= 带入）
+                referrerPhone = sessionStorage.getItem('referrerPhone') || '';
+                // 也尝试 URL 参数兜底
+                if (!referrerPhone) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    referrerPhone = urlParams.get('ref') || '';
+                }
             }
 
             try {
@@ -964,6 +1054,123 @@
             t.textContent = msg;
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2200);
+        }
+
+        // ========== 分享功能 ==========
+        let currentShareType = 'page'; // 'page' | 'coupon'
+
+        /** 打开分享面板 */
+        function openSharePanel(type) {
+            currentShareType = type;
+            const overlay = document.getElementById('shareOverlay');
+            const card = document.getElementById('shareCardPreview');
+            const badge = document.getElementById('shareCardBadge');
+            const hotel = document.getElementById('shareCardHotel');
+            const price = document.getElementById('shareCardPrice');
+            const tagline = document.getElementById('shareCardTagline');
+            const title = document.getElementById('sharePanelTitle');
+
+            if (type === 'coupon') {
+                // 分享优惠券卡片样式
+                card.className = 'share-card coupon-style';
+                title.textContent = '分享领券给朋友';
+                badge.textContent = '优惠券';
+                hotel.textContent = HOTEL.name + ' · 领券立减';
+                price.innerHTML = '<small>¥</small>50<span style="font-size:13px;color:#ff6b35"> 最高优惠</span>';
+                tagline.textContent = '朋友领券后你也能获得1张分享券！';
+            } else {
+                // 分享酒店页面卡片样式
+                card.className = 'share-card';
+                title.textContent = '分享给好友';
+                badge.textContent = '官方直营';
+                hotel.textContent = HOTEL.name;
+                price.innerHTML = '<small>¥</small>' + Math.min(...HOTEL.rooms.map(r => r.price)) + '<span style="font-size:13px;color:rgba(255,255,255,0.6)"> 起/晚</span>';
+                tagline.textContent = '0佣金预订 · 微信扫码立省15%';
+            }
+
+            // 隐藏复制成功提示
+            document.getElementById('shareCopyTip').classList.remove('show');
+            overlay.classList.add('active');
+        }
+
+        function closeSharePanel() {
+            document.getElementById('shareOverlay').classList.remove('active');
+        }
+
+        /** 获取当前分享链接 */
+        function getShareLink() {
+            const baseUrl = window.location.origin + window.location.pathname;
+            if (currentShareType === 'coupon' && claimPhone) {
+                return baseUrl + '?ref=' + claimPhone;
+            }
+            return baseUrl;
+        }
+
+        /** 复制分享链接 */
+        async function copyShareLink() {
+            const link = getShareLink();
+            try {
+                await navigator.clipboard.writeText(link);
+                showCopySuccess();
+            } catch(e) {
+                // fallback: textarea 方式
+                const ta = document.createElement('textarea');
+                ta.value = link;
+                ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                showCopySuccess();
+            }
+        }
+
+        function showCopySuccess() {
+            const tip = document.getElementById('shareCopyTip');
+            tip.classList.add('show');
+            setTimeout(() => tip.classList.remove('show'), 2500);
+        }
+
+        /** 微信好友分享（调起微信或提示） */
+        function shareToWechat() {
+            const link = getShareLink();
+            const text = currentShareType === 'coupon'
+                ? `我在${HOTEL.name}领了优惠券，最高减¥50！你也来领一张吧：${link}`
+                : `${HOTEL.name}官方直订，比OTA便宜15%！¥${Math.min(...HOTEL.rooms.map(r=>r.price))}起/晚，0佣金：${link}`;
+            
+            // 尝试调用 Web Share API（微信内置浏览器支持）
+            if (navigator.share) {
+                navigator.share({
+                    title: currentShareType === 'coupon' ? `${HOTEL.name}·领券立减` : HOTEL.name,
+                    text: text,
+                    url: link
+                }).catch(() => { /* 用户取消 */ });
+            } else {
+                // 不支持则复制链接并提示
+                copyShareLink();
+                showToast('已复制链接，请打开微信发送给好友');
+            }
+        }
+
+        /** 朋友圈分享 */
+        function shareToMoments() {
+            const link = getShareLink();
+            const tip = currentShareType === 'coupon'
+                ? `🎫 ${HOTEL.name}优惠券免费领\n满200减30 / 满300减50 / 满250减40\n扫码或点击领取：${link}`
+                : `🏨 ${HOTEL.name}\n💰 ¥${Math.min(...HOTEL.rooms.map(r=>r.price))}起/晚，比携程便宜15%\n✅ 官方直营 0佣金预订\n📍 ${HOTEL.address}\n${link}`;
+            
+            copyShareLink();
+            showToast('已复制文案和链接，请打开微信发朋友圈');
+        }
+
+        /** 推荐人来源提示条 */
+        function showReferrerTip(refPhone) {
+            const bar = document.createElement('div');
+            bar.style.cssText = 'background:linear-gradient(135deg,#fff7e6,#ffe8d6);color:#d46b08;font-size:12px;padding:8px 16px;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;';
+            bar.innerHTML = '🎉 你的朋友邀请你来领券预订，优惠更多！<span style="color:#999;margin-left:4px;cursor:pointer;font-size:16px;line-height:1;" onclick="this.parentElement.remove()">×</span>';
+            document.body.insertBefore(bar, document.body.firstChild);
+            // 5秒后自动消失
+            setTimeout(() => { if (bar.parentElement) bar.style.opacity = '0'; setTimeout(()=>bar.remove(),300); }, 5000);
         }
     </script>
 </body>
