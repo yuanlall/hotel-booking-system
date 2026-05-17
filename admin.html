@@ -47,9 +47,9 @@
         .login-hint { text-align: center; font-size: 11px; color: #bbb; margin-top: 16px; }
 
         /* ========== 主界面（登录后显示）========== */
-        .main-app { display: none; } /* 默认隐藏，登录成功后显示 */
+        .main-app { display: none; }
         
-        .header { background: linear-gradient(135deg, #ff6b35, #f7931e); color: #fff; padding: 20px 16px; position: relative; }
+        .header { background: linear-gradient(135deg, #ff6b35, #f7931e); color: #fff; padding: 20px 16px 0; position: relative; }
         .header h1 { font-size: 20px; font-weight: 700; }
         .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
         .logout-btn {
@@ -58,6 +58,20 @@
             background: transparent; color: #fff; font-size: 12px; cursor: pointer;
         }
         .logout-btn:active { background: rgba(255,255,255,0.15); }
+
+        /* Tab 导航 */
+        .tab-nav {
+            display: flex; margin-top: 16px; background: rgba(255,255,255,0.15); border-radius: 10px; padding: 3px;
+        }
+        .tab-btn {
+            flex: 1; padding: 10px 0; border: none; border-radius: 8px;
+            background: transparent; color: rgba(255,255,255,0.75); font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .tab-btn.active { background: #fff; color: #ff6b35; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .tab-btn:active { opacity: 0.85; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         
         .content { padding: 16px 8px; }
         .section { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
@@ -124,13 +138,14 @@
         /* 弹窗 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
-        .modal { background: #fff; border-radius: 16px; width: 90%; max-width: 360px; padding: 24px; }
+        .modal { background: #fff; border-radius: 16px; width: 90%; max-width: 420px; padding: 24px; max-height: 85vh; overflow-y: auto; }
         .modal-title { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 16px; }
         .modal-content { font-size: 14px; color: #666; line-height: 1.6; text-align: center; }
         .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
         .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
         .modal-btn-cancel { background: #f5f5f5; color: #666; }
         .modal-btn-confirm { background: #ff6b35; color: #fff; }
+        .modal-btn:active { opacity: 0.85; }
 
         .stock-warning { animation: pulse 1.5s infinite; }
         @keyframes pulse {
@@ -140,6 +155,72 @@
 
         /* 当日订单提示 */
         .day-orders-hint { font-size: 12px; color: #999; margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 6px; line-height: 1.6; }
+
+        /* ========== 配置管理样式 ========== */
+        .cfg-section { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .cfg-section-title {
+            font-size: 15px; font-weight: 700; margin-bottom: 14px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .cfg-section-title .icon { font-size: 18px; }
+        .cfg-save-btn {
+            padding: 6px 16px; border: none; border-radius: 8px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e); color: #fff;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .cfg-save-btn:active { opacity: 0.85; }
+        .cfg-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .cfg-field { margin-bottom: 14px; }
+        .cfg-label { font-size: 13px; color: #666; margin-bottom: 6px; font-weight: 500; }
+        .cfg-input {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #e0e0e0; border-radius: 8px;
+            font-size: 14px; outline: none; transition: border-color 0.2s;
+        }
+        .cfg-input:focus { border-color: #ff6b35; }
+        .cfg-input-sm { width: 120px; }
+        .cfg-textarea {
+            width: 100%; padding: 10px 12px; border: 1.5px solid #e0e0e0; border-radius: 8px;
+            font-size: 14px; outline: none; resize: vertical; min-height: 60px; font-family: inherit;
+        }
+        .cfg-textarea:focus { border-color: #ff6b35; }
+        .cfg-row { display: flex; gap: 12px; align-items: flex-end; }
+        .cfg-row .cfg-field { flex: 1; margin-bottom: 0; }
+        .cfg-hint { font-size: 11px; color: #bbb; margin-top: 4px; }
+
+        /* 房型/优惠券卡片 */
+        .cfg-card {
+            background: #fafafa; border: 1.5px solid #f0f0f0; border-radius: 10px;
+            padding: 14px; margin-bottom: 10px;
+        }
+        .cfg-card-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        .cfg-card-name { font-size: 14px; font-weight: 600; }
+        .cfg-card-price { font-size: 16px; font-weight: 700; color: #ff6b35; }
+        .cfg-card-actions { display: flex; gap: 6px; }
+        .cfg-card-btn {
+            padding: 4px 10px; border-radius: 6px; font-size: 12px;
+            cursor: pointer; border: 1px solid #d9d9d9; background: #fff;
+        }
+        .cfg-card-btn:active { opacity: 0.8; }
+        .cfg-card-btn.primary { border-color: #ff6b35; color: #ff6b35; }
+        .cfg-card-btn.danger { border-color: #ff4d4f; color: #ff4d4f; }
+        .cfg-card-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .cfg-add-btn {
+            width: 100%; padding: 12px; border: 2px dashed #d9d9d9; border-radius: 10px;
+            background: transparent; color: #999; font-size: 14px; cursor: pointer;
+        }
+        .cfg-add-btn:active { border-color: #ff6b35; color: #ff6b35; }
+
+        /* 优惠券色块 */
+        .coupon-type-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 11px; font-weight: 600; margin-left: 8px;
+        }
+        .coupon-type-badge.new { background: #fff7e6; color: #fa8c16; }
+        .coupon-type-badge.share { background: #f0f5ff; color: #1890ff; }
+        .coupon-type-badge.return { background: #f6ffed; color: #52c41a; }
     </style>
 </head>
 <body>
@@ -172,74 +253,179 @@
     <div class="header">
         <div>
             <h1>🏨 酒店管理后台</h1>
-            <p>实时订单管理 · 房态自动同步</p>
+            <p id="hotelNameHeader">实时订单管理 · 房态自动同步</p>
         </div>
         <button class="logout-btn" onclick="doLogout()">退出登录</button>
-    </div>
-
-    <!-- 统计卡片 -->
-    <div style="padding: 0 8px;">
-        <div class="stats-row">
-            <div class="stat-card stat-pending">
-                <div class="stat-value" id="statPending">0</div>
-                <div class="stat-label">待确认</div>
-            </div>
-            <div class="stat-card stat-confirmed">
-                <div class="stat-value" id="statConfirmed">0</div>
-                <div class="stat-label">已确认</div>
-            </div>
-            <div class="stat-card stat-income">
-                <div class="stat-value" id="statToday">0</div>
-                <div class="stat-label">今日收入</div>
-            </div>
+        <!-- Tab 导航 -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('orders')">📋 订单管理</button>
+            <button class="tab-btn" onclick="switchTab('config')">⚙️ 配置管理</button>
         </div>
     </div>
 
-    <div class="content">
-        <!-- 房态管理（按日期查看） -->
-        <div class="section">
-            <div class="section-title">🛏️ 房态管理（按日期）</div>
-            
-            <!-- 日期选择器 -->
-            <div class="date-picker-row">
-                <button class="date-nav-btn" onclick="changeDate(-1)">◀</button>
-                <input type="date" class="date-picker-input" id="datePicker" onchange="onDateChange()">
-                <button class="date-nav-btn" onclick="changeDate(1)">▶</button>
-                <button class="date-today-btn" onclick="goToday()">今天</button>
+    <!-- ==================== TAB1: 订单管理 ==================== -->
+    <div class="tab-content active" id="tab-orders">
+        <!-- 统计卡片 -->
+        <div style="padding: 12px 8px 0;">
+            <div class="stats-row">
+                <div class="stat-card stat-pending">
+                    <div class="stat-value" id="statPending">0</div>
+                    <div class="stat-label">待确认</div>
+                </div>
+                <div class="stat-card stat-confirmed">
+                    <div class="stat-value" id="statConfirmed">0</div>
+                    <div class="stat-label">已确认</div>
+                </div>
+                <div class="stat-card stat-income">
+                    <div class="stat-value" id="statToday">0</div>
+                    <div class="stat-label">今日收入</div>
+                </div>
             </div>
-            <div class="selected-date-display" id="dateDisplay"></div>
-
-            <div id="roomManager"></div>
-            <div id="dayOrdersHint" class="day-orders-hint" style="display:none;"></div>
         </div>
 
-        <!-- 订单列表 -->
-        <div class="section">
-            <div class="section-title">📋 全部订单</div>
-            <div id="orderList"></div>
+        <div class="content">
+            <!-- 房态管理（按日期查看） -->
+            <div class="section">
+                <div class="section-title">🛏️ 房态管理（按日期）</div>
+                
+                <!-- 日期选择器 -->
+                <div class="date-picker-row">
+                    <button class="date-nav-btn" onclick="changeDate(-1)">◀</button>
+                    <input type="date" class="date-picker-input" id="datePicker" onchange="onDateChange()">
+                    <button class="date-nav-btn" onclick="changeDate(1)">▶</button>
+                    <button class="date-today-btn" onclick="goToday()">今天</button>
+                </div>
+                <div class="selected-date-display" id="dateDisplay"></div>
+
+                <div id="roomManager"></div>
+                <div id="dayOrdersHint" class="day-orders-hint" style="display:none;"></div>
+            </div>
+
+            <!-- 订单列表 -->
+            <div class="section">
+                <div class="section-title">📋 全部订单</div>
+                <div id="orderList"></div>
+            </div>
+
+            <!-- 操作说明 -->
+            <div class="section" style="background:#f0f7ff;">
+                <div class="section-title" style="color:#1890ff;">💡 操作提示</div>
+                <div style="font-size:13px;color:#666;line-height:1.8;">
+                    1. 选择日期查看当天各房型剩余房量<br>
+                    2. 房量根据「待确认+已确认」订单自动计算<br>
+                    3. 点击「确认」→ 订单状态更新 + 房量自动扣减<br>
+                    4. 点击「拒绝」→ 订单取消 + 房量自动释放<br>
+                    5. 数据每30秒自动刷新
+                </div>
+            </div>
         </div>
 
-        <!-- 操作说明 -->
-        <div class="section" style="background:#f0f7ff;">
-            <div class="section-title" style="color:#1890ff;">💡 操作提示</div>
+        <!-- 确认弹窗 -->
+        <div class="modal-overlay" id="confirmModal">
+            <div class="modal">
+                <div class="modal-title">✅ 确认订单</div>
+                <div class="modal-content" id="confirmContent"></div>
+                <div class="modal-actions">
+                    <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">取消</button>
+                    <button class="modal-btn modal-btn-confirm" onclick="doConfirm()">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TAB2: 配置管理 ==================== -->
+    <div class="tab-content" id="tab-config" style="padding:12px 8px;">
+        <!-- 酒店信息 -->
+        <div class="cfg-section">
+            <div class="cfg-section-title">
+                <span><span class="icon">🏨</span> 酒店信息</span>
+                <button class="cfg-save-btn" onclick="saveHotelConfig()">💾 保存</button>
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">酒店名称</div>
+                <input type="text" class="cfg-input" id="cfgHotelName" placeholder="如：香江城迹酒店">
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">详细地址</div>
+                <input type="text" class="cfg-input" id="cfgHotelAddress" placeholder="省市区+街道+门牌号">
+            </div>
+            <div class="cfg-row">
+                <div class="cfg-field">
+                    <div class="cfg-label">联系电话</div>
+                    <input type="text" class="cfg-input" id="cfgHotelPhone" placeholder="0571-12345678">
+                </div>
+                <div class="cfg-field">
+                    <div class="cfg-label">评分</div>
+                    <input type="number" class="cfg-input" id="cfgHotelRating" step="0.1" min="0" max="5" style="width:80px;">
+                </div>
+            </div>
+            <div class="cfg-row">
+                <div class="cfg-field">
+                    <div class="cfg-label">入住时间</div>
+                    <input type="time" class="cfg-input" id="cfgCheckinTime" style="width:120px;">
+                </div>
+                <div class="cfg-field">
+                    <div class="cfg-label">退房时间</div>
+                    <input type="time" class="cfg-input" id="cfgCheckoutTime" style="width:120px;">
+                </div>
+                <div class="cfg-field">
+                    <div class="cfg-label">停车</div>
+                    <select class="cfg-input" id="cfgParking" style="width:100px;">
+                        <option value="免费">免费</option>
+                        <option value="收费">收费</option>
+                        <option value="无">无</option>
+                    </select>
+                </div>
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">酒店标签（逗号分隔）</div>
+                <input type="text" class="cfg-input" id="cfgHotelTags" placeholder="官方直营,近博物馆,免费停车">
+                <div class="cfg-hint">第一个标签会显示为橙色高亮</div>
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">酒店简介</div>
+                <textarea class="cfg-textarea" id="cfgHotelDesc" placeholder="一句话介绍酒店特色"></textarea>
+            </div>
+        </div>
+
+        <!-- 房型管理 -->
+        <div class="cfg-section">
+            <div class="cfg-section-title">
+                <span><span class="icon">🛏️</span> 房型管理</span>
+            </div>
+            <div id="cfgRoomList"></div>
+            <button class="cfg-add-btn" onclick="addRoomCard()">+ 添加房型</button>
+        </div>
+
+        <!-- 优惠券模板 -->
+        <div class="cfg-section">
+            <div class="cfg-section-title">
+                <span><span class="icon">🎫</span> 优惠券模板</span>
+            </div>
+            <div id="cfgCouponList"></div>
+            <button class="cfg-add-btn" onclick="addCouponCard()">+ 添加优惠券</button>
+        </div>
+
+        <!-- 配置提示 -->
+        <div class="cfg-section" style="background:#f0f7ff;">
+            <div class="cfg-section-title" style="color:#1890ff;">💡 配置说明</div>
             <div style="font-size:13px;color:#666;line-height:1.8;">
-                1. 选择日期查看当天各房型剩余房量<br>
-                2. 房量根据「待确认+已确认」订单自动计算<br>
-                3. 点击「确认」→ 订单状态更新 + 房量自动扣减<br>
-                4. 点击「拒绝」→ 订单取消 + 房量自动释放<br>
-                5. 数据每30秒自动刷新
+                1. 修改后点击「保存」，前端页面刷新后立即生效<br>
+                2. 房型库存是总房间数，实际可订 = 总库存 - 已确认订单占用<br>
+                3. 优惠券 amount=优惠金额，condition=满减门槛，expire=有效天数<br>
+                4. 房型ID（如 standard）不可重复，保存后无法修改
             </div>
         </div>
     </div>
 
-    <!-- 确认弹窗 -->
-    <div class="modal-overlay" id="confirmModal">
+    <!-- ==================== 配置编辑弹窗（房型/优惠券） ==================== -->
+    <div class="modal-overlay" id="cfgModal">
         <div class="modal">
-            <div class="modal-title">✅ 确认订单</div>
-            <div class="modal-content" id="confirmContent"></div>
+            <div class="modal-title" id="cfgModalTitle">编辑</div>
+            <div id="cfgModalBody"></div>
             <div class="modal-actions">
-                <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">取消</button>
-                <button class="modal-btn modal-btn-confirm" onclick="doConfirm()">确认</button>
+                <button class="modal-btn modal-btn-cancel" onclick="closeCfgModal()">取消</button>
+                <button class="modal-btn modal-btn-confirm" id="cfgModalSaveBtn" onclick="saveCfgModal()">保存</button>
             </div>
         </div>
     </div>
@@ -251,11 +437,9 @@
 //  🔐 登录系统
 // ============================================================
 
-// ⚠️ 默认账号密码（生产环境请修改！）
 const SESSION_KEY = 'hotel_admin_session';
 const TOKEN_KEY = 'hotel_admin_token';
 
-// ===== 登录：调后端 API 获取 Token =====
 async function doLogin() {
     const acc = document.getElementById('loginAccount').value.trim();
     const pwd = document.getElementById('loginPassword').value;
@@ -276,12 +460,8 @@ async function doLogin() {
         const data = await res.json();
 
         if (data.success && data.token) {
-            // 保存 token 和账号信息
             sessionStorage.setItem(TOKEN_KEY, data.token);
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify({
-                account: acc,
-                loginTime: Date.now()
-            }));
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify({ account: acc, loginTime: Date.now() }));
             authToken = data.token;
             errEl.style.display = 'none';
             showMainApp();
@@ -289,11 +469,9 @@ async function doLogin() {
             errEl.textContent = '❌ ' + (data.message || '账号或密码错误');
             errEl.style.display = 'block';
             const pwInput = document.getElementById('loginPassword');
-            pwInput.style.animation = 'none';
-            pwInput.offsetHeight;
+            pwInput.style.animation = 'none'; pwInput.offsetHeight;
             pwInput.style.animation = 'shake 0.4s ease';
-            pwInput.value = '';
-            pwInput.focus();
+            pwInput.value = ''; pwInput.focus();
         }
     } catch(e) {
         errEl.textContent = '❌ 网络错误，请重试';
@@ -301,13 +479,11 @@ async function doLogin() {
     }
 }
 
-// 全局 token 变量
 let authToken = sessionStorage.getItem(TOKEN_KEY) || '';
 
 function handleAuthExpired() {
     authToken = '';
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(TOKEN_KEY);
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('loginPage').style.display = 'flex';
     document.getElementById('loginError').textContent = '⚠️ 登录已过期，请重新登录';
@@ -315,14 +491,13 @@ function handleAuthExpired() {
 }
 
 function getAuthHeaders() {
-    const headers = { 'Content-Type': 'application/json' };
-    if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
-    return headers;
+    const h = { 'Content-Type': 'application/json' };
+    if (authToken) h['Authorization'] = 'Bearer ' + authToken;
+    return h;
 }
 
 function doLogout() {
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(TOKEN_KEY);
     authToken = '';
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('loginPage').style.display = 'flex';
@@ -336,118 +511,101 @@ function checkSession() {
     const token = sessionStorage.getItem(TOKEN_KEY);
     if (!raw || !token) return false;
     try {
-        const session = JSON.parse(raw);
-        if (Date.now() - session.loginTime > 24 * 60 * 60 * 1000) {
-            sessionStorage.removeItem(SESSION_KEY);
-            sessionStorage.removeItem(TOKEN_KEY);
-            return false;
-        }
+        const s = JSON.parse(raw);
+        if (Date.now() - s.loginTime > 24*60*60*1000) { sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(TOKEN_KEY); return false; }
         authToken = token;
         return true;
-    } catch(e) {
-        return false;
-    }
+    } catch(e) { return false; }
 }
 
 function showMainApp() {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
-    // 登录后才初始化主界面
     initDatePicker();
     loadOrders();
+    loadConfig();
     setInterval(loadOrders, 30000);
 }
 
-// 页面加载时检查登录态
 document.addEventListener('DOMContentLoaded', () => {
-    if (checkSession()) {
-        showMainApp();
-    } else {
+    if (checkSession()) showMainApp();
+    else {
         document.getElementById('loginPage').style.display = 'flex';
         document.getElementById('mainApp').style.display = 'none';
-        // 聚焦到账号输入框
         setTimeout(() => document.getElementById('loginAccount').focus(), 300);
     }
 });
 
-// 添加抖动动画
 const shakeStyle = document.createElement('style');
 shakeStyle.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}`;
 document.head.appendChild(shakeStyle);
 
 
 // ============================================================
-//  📊 主界面逻辑
+//  📑 Tab 切换
+// ============================================================
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', (tab === 'orders' && i === 0) || (tab === 'config' && i === 1));
+    });
+    document.getElementById('tab-orders').classList.toggle('active', tab === 'orders');
+    document.getElementById('tab-config').classList.toggle('active', tab === 'config');
+    if (tab === 'config') loadConfig();
+}
+
+
+// ============================================================
+//  📊 订单管理（Tab1）
 // ============================================================
 
 let orders = [];
 let currentOrderId = null;
 let selectedDate = null;
-
-const ROOM_CONFIG = [
+let ROOM_CONFIG = [
     { id: 'standard', name: '标准双床房', totalStock: 8 },
     { id: 'king', name: '豪华大床房', totalStock: 5 },
     { id: 'suite', name: '行政套房', totalStock: 2 }
 ];
-
 const ROOM_NAME_TO_ID = {
-    '标准双床房': 'standard',
-    '豪华大床房': 'king',
-    '行政套房': 'suite'
+    '标准双床房': 'standard', '豪华大床房': 'king', '行政套房': 'suite'
 };
 
 function initDatePicker() {
     const picker = document.getElementById('datePicker');
-    const today = new Date();
-    selectedDate = formatDate(today);
+    selectedDate = formatDate(new Date());
     picker.value = selectedDate;
     updateDateDisplay();
 }
 
 function formatDate(d) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function formatDisplayDate(dateStr) {
     const d = new Date(dateStr + 'T00:00:00');
-    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    return `${d.getMonth()+1}月${d.getDate()}日 ${weekDays[d.getDay()]}`;
+    const w = ['周日','周一','周二','周三','周四','周五','周六'];
+    return `${d.getMonth()+1}月${d.getDate()}日 ${w[d.getDay()]}`;
 }
 
-function parseDate(dateStr) {
-    return new Date(dateStr + 'T00:00:00');
-}
-
-function isBetween(dateStr, startStr, endStr) {
-    // 入住当天占房,退房当天不占(客人已退)
-    return dateStr >= startStr && dateStr < endStr;
-}
+function parseDate(s) { return new Date(s + 'T00:00:00'); }
+function isBetween(d, s, e) { return d >= s && d < e; }
 
 function onDateChange() {
     selectedDate = document.getElementById('datePicker').value;
-    updateDateDisplay();
-    renderRoomManager();
+    updateDateDisplay(); renderRoomManager();
 }
-
 function changeDate(delta) {
-    const d = parseDate(selectedDate);
-    d.setDate(d.getDate() + delta);
+    const d = parseDate(selectedDate); d.setDate(d.getDate() + delta);
     selectedDate = formatDate(d);
     document.getElementById('datePicker').value = selectedDate;
-    updateDateDisplay();
-    renderRoomManager();
+    updateDateDisplay(); renderRoomManager();
 }
-
 function goToday() {
     selectedDate = formatDate(new Date());
     document.getElementById('datePicker').value = selectedDate;
-    updateDateDisplay();
-    renderRoomManager();
+    updateDateDisplay(); renderRoomManager();
 }
-
 function updateDateDisplay() {
     const el = document.getElementById('dateDisplay');
     const today = formatDate(new Date());
@@ -462,23 +620,19 @@ async function loadOrders() {
         if (res.status === 401) { handleAuthExpired(); return; }
         const data = await res.json();
         orders = (data.success && data.orders) ? data.orders : [];
-    } catch(e) {
-        console.error('Load orders error:', e);
-        orders = [];
-    }
-    renderRoomManager();
-    renderOrders();
-    updateStats();
+        // 同步房型配置
+        if (data.roomConfig) {
+            ROOM_CONFIG = data.roomConfig.map(r => ({ id: r.room_id, name: r.name, totalStock: r.total_stock }));
+        }
+    } catch(e) { orders = []; }
+    renderRoomManager(); renderOrders(); updateStats();
 }
 
 function renderRoomManager() {
     const el = document.getElementById('roomManager');
     if (!selectedDate) return;
-
-    const occupied = {};
-    ROOM_CONFIG.forEach(r => occupied[r.id] = 0);
+    const occupied = {}; ROOM_CONFIG.forEach(r => occupied[r.id] = 0);
     const dayOrderDetails = {};
-
     orders.filter(o => o.status === 'confirmed' || o.status === 'pending').forEach(order => {
         const roomId = ROOM_NAME_TO_ID[order.roomName];
         if (!roomId) return;
@@ -488,44 +642,26 @@ function renderRoomManager() {
             dayOrderDetails[roomId].push(`${order.guestName}(${order.checkin}→${order.checkout})`);
         }
     });
-
     el.innerHTML = ROOM_CONFIG.map(r => {
-        const used = occupied[r.id];
-        const left = Math.max(0, r.totalStock - used);
-        const isAvailable = left > 0;
-        const isLow = left <= 1 && left > 0;
-        return `
-        <div class="room-row">
-            <div>
-                <div class="room-name">${r.name}</div>
-                <div class="room-stock-info">
-                    总共 ${r.totalStock} 间 · 已用 <span style="color:${used>0?'#ff4d4f':'#999'};font-weight:600;">${used}</span> · 剩余
-                    <span style="color:${left<=0?'#ff4d4f':isLow?'#fa8c16':'#52c41a'};font-weight:700;" ${isLow?'class="stock-warning"':''}>${left}</span> 间
-                </div>
-            </div>
-            <button class="stock-btn ${isAvailable?'on':'off'}" onclick="toggleRoom('${r.id}')" ${!isAvailable?'disabled style="opacity:0.5;cursor:not-allowed;"':''}>
-                ${isAvailable ? (isLow ? '紧张' : '可订') : '满房'}
-            </button>
-        </div>`;
+        const used = occupied[r.id], left = Math.max(0, r.totalStock - used);
+        const isAvailable = left > 0, isLow = left <= 1 && left > 0;
+        return `<div class="room-row"><div><div class="room-name">${r.name}</div><div class="room-stock-info">总共 ${r.totalStock} 间 · 已用 <span style="color:${used>0?'#ff4d4f':'#999'};font-weight:600;">${used}</span> · 剩余 <span style="color:${left<=0?'#ff4d4f':isLow?'#fa8c16':'#52c41a'};font-weight:700;" ${isLow?'class="stock-warning"':''}>${left}</span> 间</div></div><button class="stock-btn ${isAvailable?'on':'off'}" onclick="toggleRoom('${r.id}')" ${!isAvailable?'disabled style="opacity:0.5;cursor:not-allowed;"':''}>${isAvailable?(isLow?'紧张':'可订'):'满房'}</button></div>`;
     }).join('');
-
     const hintEl = document.getElementById('dayOrdersHint');
     const allDetails = Object.entries(dayOrderDetails).filter(([_,l])=>l.length>0);
-    const roomIdToName = {}; ROOM_CONFIG.forEach(r=>roomIdToName[r.id]=r.name);
+    const id2name = {}; ROOM_CONFIG.forEach(r=>id2name[r.id]=r.name);
     if (allDetails.length > 0) {
-        hintEl.innerHTML = '<strong>📌 ' + formatDisplayDate(selectedDate) + ' 占用明细：</strong><br>' +
-            allDetails.map(([rid,list])=>`· <strong>${roomIdToName[rid]}</strong>：${list.join('、')}`).join('<br>');
-        hintEl.style.display = 'block';
+        hintEl.innerHTML = '<strong>📌 ' + formatDisplayDate(selectedDate) + ' 占用明细：</strong><br>' + allDetails.map(([rid,list])=>`· <strong>${id2name[rid]}</strong>：${list.join('、')}`).join('<br>');
     } else {
-        hintEl.innerHTML = '<strong>✅ ' + formatDisplayDate(selectedDate) + '</strong> 暂无订单占用，所有房型满房';
-        hintEl.style.display = 'block';
+        hintEl.innerHTML = '<strong>✅ ' + formatDisplayDate(selectedDate) + '</strong> 暂无订单占用';
     }
+    hintEl.style.display = 'block';
 }
 
 function renderOrders() {
     const el = document.getElementById('orderList');
     if (orders.length === 0) {
-        el.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div>暂无订单</div><div style="font-size:12px;margin-top:6px;">有订单时会在这里显示</div></div>`;
+        el.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div>暂无订单</div></div>`;
         return;
     }
     el.innerHTML = orders.map(order => `
@@ -553,7 +689,6 @@ function renderOrders() {
 function updateStats() {
     document.getElementById('statPending').textContent = orders.filter(o=>o.status==='pending').length;
     document.getElementById('statConfirmed').textContent = orders.filter(o=>o.status==='confirmed').length;
-    // 今日收入：今天确认的订单总金额（submittedAt格式: "2026/5/17 01:20"，需兼容匹配）
     const today = new Date();
     const todayYMD = today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate();
     document.getElementById('statToday').textContent = orders
@@ -603,6 +738,337 @@ function showToast(msg) {
     const t=document.createElement('div');
     t.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:300;';
     t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+}
+
+
+// ============================================================
+//  ⚙️ 配置管理（Tab2）
+// ============================================================
+
+let configData = null;      // 从 API 加载的原始配置
+let cfgModalType = '';        // 'room' | 'coupon'
+let cfgModalIndex = -1;       // 编辑第几个，-1 表示新增
+let cfgModalData = {};        // 弹窗中的临时数据
+
+// 加载配置 → 填充表单
+async function loadConfig() {
+    try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        if (data.success && data.config) {
+            configData = data.config;
+            fillHotelForm(data.config.hotel);
+            renderRoomCards(data.config.rooms);
+            renderCouponCards(data.config.coupons);
+            document.getElementById('hotelNameHeader').textContent = data.config.hotel.name + ' · 管理后台';
+        }
+    } catch(e) {
+        console.error('Load config error:', e);
+    }
+}
+
+// ===== 酒店信息 =====
+function fillHotelForm(h) {
+    document.getElementById('cfgHotelName').value = h.name || '';
+    document.getElementById('cfgHotelAddress').value = h.address || '';
+    document.getElementById('cfgHotelPhone').value = h.phone || '';
+    document.getElementById('cfgHotelRating').value = h.rating || 4.5;
+    document.getElementById('cfgHotelTags').value = (h.tags || []).join(',');
+    document.getElementById('cfgHotelDesc').value = h.description || '';
+    document.getElementById('cfgCheckinTime').value = h.checkinTime || '14:00';
+    document.getElementById('cfgCheckoutTime').value = h.checkoutTime || '12:00';
+    document.getElementById('cfgParking').value = h.parking || '免费';
+}
+
+async function saveHotelConfig() {
+    const body = {
+        action: 'update_hotel',
+        name: document.getElementById('cfgHotelName').value.trim(),
+        address: document.getElementById('cfgHotelAddress').value.trim(),
+        phone: document.getElementById('cfgHotelPhone').value.trim(),
+        rating: parseFloat(document.getElementById('cfgHotelRating').value) || 4.5,
+        review_count: configData?.hotel?.reviewCount || 328,
+        tags: document.getElementById('cfgHotelTags').value.trim(),
+        description: document.getElementById('cfgHotelDesc').value.trim(),
+        checkin_time: document.getElementById('cfgCheckinTime').value || '14:00',
+        checkout_time: document.getElementById('cfgCheckoutTime').value || '12:00',
+        parking: document.getElementById('cfgParking').value || '免费'
+    };
+    try {
+        const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
+        if (res.status === 401) { handleAuthExpired(); return; }
+        const d = await res.json();
+        showToast(d.success ? '✅ 酒店信息已保存' : '❌ ' + (d.message || '保存失败'));
+        if (d.success) loadConfig();
+    } catch(e) { showToast('❌ 网络错误'); }
+}
+
+// ===== 房型管理 =====
+function renderRoomCards(rooms) {
+    const el = document.getElementById('cfgRoomList');
+    if (!rooms || rooms.length === 0) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:#999;font-size:13px;">暂无房型，点击下方添加</div>';
+        return;
+    }
+    el.innerHTML = rooms.map((r, i) => `
+        <div class="cfg-card">
+            <div class="cfg-card-header">
+                <span>
+                    <span class="cfg-card-name">${r.name}</span>
+                    <span style="font-size:12px;color:#999;margin-left:6px;">${r.area || ''} · ${r.bedType || ''}</span>
+                </span>
+                <span class="cfg-card-price">¥${r.price}/晚</span>
+            </div>
+            <div style="font-size:12px;color:#666;margin-bottom:8px;">
+                库存 <strong>${r.stock}</strong> 间 · 特色：${(r.features||[]).join('、')}
+            </div>
+            <div class="cfg-card-actions">
+                <button class="cfg-card-btn primary" onclick="editRoom(${i})">✏️ 编辑</button>
+                <button class="cfg-card-btn danger" onclick="deleteRoom(${i})" ${rooms.length<=1?'disabled':''}>🗑️ 删除</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function addRoomCard() {
+    cfgModalType = 'room'; cfgModalIndex = -1;
+    cfgModalData = { room_id: '', name: '', price: 0, area: '', bedType: '', features: '', stock: 1 };
+    openCfgModal('添加房型', buildRoomFormHTML());
+}
+
+function editRoom(index) {
+    const r = configData.rooms[index];
+    cfgModalType = 'room'; cfgModalIndex = index;
+    cfgModalData = {
+        room_id: r.id, name: r.name, price: r.price,
+        area: r.area || '', bedType: r.bedType || '',
+        features: (r.features || []).join(','),
+        stock: r.stock
+    };
+    openCfgModal('编辑房型', buildRoomFormHTML());
+}
+
+function buildRoomFormHTML() {
+    const isEdit = cfgModalIndex >= 0;
+    return `
+        <div class="cfg-field">
+            <div class="cfg-label">房型ID（英文，如 standard）</div>
+            <input type="text" class="cfg-input" id="cfgRoomId" value="${cfgModalData.room_id}" ${isEdit?'disabled style="background:#f5f5f5;"':''} placeholder="standard">
+            ${isEdit?'<div class="cfg-hint">房型ID创建后不可修改</div>':''}
+        </div>
+        <div class="cfg-field">
+            <div class="cfg-label">房型名称</div>
+            <input type="text" class="cfg-input" id="cfgRoomName" value="${cfgModalData.name}" placeholder="标准双床房">
+        </div>
+        <div class="cfg-row">
+            <div class="cfg-field">
+                <div class="cfg-label">价格（元/晚）</div>
+                <input type="number" class="cfg-input" id="cfgRoomPrice" value="${cfgModalData.price}" min="0">
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">库存（间）</div>
+                <input type="number" class="cfg-input" id="cfgRoomStock" value="${cfgModalData.stock}" min="0" style="width:80px;">
+            </div>
+        </div>
+        <div class="cfg-row">
+            <div class="cfg-field">
+                <div class="cfg-label">面积</div>
+                <input type="text" class="cfg-input" id="cfgRoomArea" value="${cfgModalData.area}" placeholder="30m²">
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">床型</div>
+                <input type="text" class="cfg-input" id="cfgRoomBed" value="${cfgModalData.bedType}" placeholder="大床1.8m">
+            </div>
+        </div>
+        <div class="cfg-field">
+            <div class="cfg-label">特色设施（逗号分隔）</div>
+            <input type="text" class="cfg-input" id="cfgRoomFeatures" value="${cfgModalData.features}" placeholder="免费WiFi,含早,客厅">
+        </div>
+    `;
+}
+
+async function deleteRoom(index) {
+    const r = configData.rooms[index];
+    if (!confirm(`确定删除房型「${r.name}」吗？\n删除后该房型将不再显示在前端。`)) return;
+    try {
+        const res = await fetch('/api/config', {
+            method: 'POST', headers: getAuthHeaders(),
+            body: JSON.stringify({ action: 'update_room', room_id: r.id, status: 'inactive' })
+        });
+        if (res.status === 401) { handleAuthExpired(); return; }
+        const d = await res.json();
+        showToast(d.success ? '✅ 房型已删除' : '❌ ' + (d.message || '删除失败'));
+        if (d.success) loadConfig();
+    } catch(e) { showToast('❌ 网络错误'); }
+}
+
+
+// ===== 优惠券模板 =====
+function renderCouponCards(coupons) {
+    const el = document.getElementById('cfgCouponList');
+    if (!coupons || coupons.length === 0) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:#999;font-size:13px;">暂无优惠券，点击下方添加</div>';
+        return;
+    }
+    const typeColors = { new: 'new', share: 'share', return: 'return' };
+    el.innerHTML = coupons.map((c, i) => `
+        <div class="cfg-card">
+            <div class="cfg-card-header">
+                <span>
+                    <span class="cfg-card-name">${c.name}</span>
+                    <span class="coupon-type-badge ${typeColors[c.id] || 'new'}">${c.id}</span>
+                </span>
+                <span class="cfg-card-price" style="color:#ff4d4f;">¥${c.amount}</span>
+            </div>
+            <div style="font-size:12px;color:#666;margin-bottom:8px;">
+                ${c.desc} · 有效${c.expire}天
+            </div>
+            <div class="cfg-card-actions">
+                <button class="cfg-card-btn primary" onclick="editCoupon(${i})">✏️ 编辑</button>
+                <button class="cfg-card-btn danger" onclick="deleteCoupon(${i})">🗑️ 删除</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function addCouponCard() {
+    cfgModalType = 'coupon'; cfgModalIndex = -1;
+    cfgModalData = { coupon_id: '', name: '', amount: 0, condition: 0, expire: 7, desc: '' };
+    openCfgModal('添加优惠券', buildCouponFormHTML());
+}
+
+function editCoupon(index) {
+    const c = configData.coupons[index];
+    cfgModalType = 'coupon'; cfgModalIndex = index;
+    cfgModalData = {
+        coupon_id: c.id, name: c.name, amount: c.amount,
+        condition: c.condition, expire: c.expire, desc: c.desc
+    };
+    openCfgModal('编辑优惠券', buildCouponFormHTML());
+}
+
+function buildCouponFormHTML() {
+    const isEdit = cfgModalIndex >= 0;
+    return `
+        <div class="cfg-field">
+            <div class="cfg-label">优惠券ID（英文，如 new）</div>
+            <input type="text" class="cfg-input" id="cfgCouponId" value="${cfgModalData.coupon_id}" ${isEdit?'disabled style="background:#f5f5f5;"':''} placeholder="new">
+            ${isEdit?'<div class="cfg-hint">优惠券ID创建后不可修改</div>':''}
+        </div>
+        <div class="cfg-field">
+            <div class="cfg-label">优惠券名称</div>
+            <input type="text" class="cfg-input" id="cfgCouponName" value="${cfgModalData.name}" placeholder="新客专享">
+        </div>
+        <div class="cfg-row">
+            <div class="cfg-field">
+                <div class="cfg-label">优惠金额（元）</div>
+                <input type="number" class="cfg-input" id="cfgCouponAmount" value="${cfgModalData.amount}" min="0">
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">满减门槛（元）</div>
+                <input type="number" class="cfg-input" id="cfgCouponCondition" value="${cfgModalData.condition}" min="0">
+            </div>
+        </div>
+        <div class="cfg-row">
+            <div class="cfg-field">
+                <div class="cfg-label">有效天数</div>
+                <input type="number" class="cfg-input" id="cfgCouponExpire" value="${cfgModalData.expire}" min="1" style="width:80px;">
+            </div>
+        </div>
+        <div class="cfg-field">
+            <div class="cfg-label">描述（如：满200减30）</div>
+            <input type="text" class="cfg-input" id="cfgCouponDesc" value="${cfgModalData.desc}" placeholder="满200减30">
+        </div>
+    `;
+}
+
+async function deleteCoupon(index) {
+    const c = configData.coupons[index];
+    if (!confirm(`确定删除优惠券「${c.name}」吗？`)) return;
+    try {
+        const res = await fetch('/api/config', {
+            method: 'POST', headers: getAuthHeaders(),
+            body: JSON.stringify({ action: 'update_coupon', coupon_id: c.id, status: 'inactive' })
+        });
+        if (res.status === 401) { handleAuthExpired(); return; }
+        const d = await res.json();
+        showToast(d.success ? '✅ 优惠券已删除' : '❌ ' + (d.message || '删除失败'));
+        if (d.success) loadConfig();
+    } catch(e) { showToast('❌ 网络错误'); }
+}
+
+
+// ===== 弹窗通用 =====
+function openCfgModal(title, html) {
+    document.getElementById('cfgModalTitle').textContent = title;
+    document.getElementById('cfgModalBody').innerHTML = html;
+    document.getElementById('cfgModal').classList.add('active');
+}
+
+function closeCfgModal() {
+    document.getElementById('cfgModal').classList.remove('active');
+}
+
+async function saveCfgModal() {
+    if (cfgModalType === 'room') {
+        const isNew = cfgModalIndex < 0;
+        const room_id = isNew ? document.getElementById('cfgRoomId').value.trim() : cfgModalData.room_id;
+        const name = document.getElementById('cfgRoomName').value.trim();
+        const price = parseInt(document.getElementById('cfgRoomPrice').value) || 0;
+        const stock = parseInt(document.getElementById('cfgRoomStock').value) || 1;
+        const area = document.getElementById('cfgRoomArea').value.trim();
+        const bedType = document.getElementById('cfgRoomBed').value.trim();
+        const features = document.getElementById('cfgRoomFeatures').value.trim();
+
+        if (isNew) {
+            if (!room_id) { showToast('❌ 请输入房型ID'); return; }
+            if (!name) { showToast('❌ 请输入房型名称'); return; }
+        } else {
+            if (!name) { showToast('❌ 请输入房型名称'); return; }
+        }
+
+        const body = {
+            action: 'update_room', room_id,
+            name, price, area, bed_type: bedType, features,
+            total_stock: stock, status: 'active'
+        };
+
+        try {
+            const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
+            if (res.status === 401) { handleAuthExpired(); closeCfgModal(); return; }
+            const d = await res.json();
+            if (d.success) { showToast('✅ 房型已保存'); closeCfgModal(); loadConfig(); }
+            else { showToast('❌ ' + (d.message || '保存失败，可能房型ID已存在')); }
+        } catch(e) { showToast('❌ 网络错误'); }
+    }
+
+    if (cfgModalType === 'coupon') {
+        const isNew = cfgModalIndex < 0;
+        const coupon_id = isNew ? document.getElementById('cfgCouponId').value.trim() : cfgModalData.coupon_id;
+        const name = document.getElementById('cfgCouponName').value.trim();
+        const amount = parseInt(document.getElementById('cfgCouponAmount').value) || 0;
+        const condition = parseInt(document.getElementById('cfgCouponCondition').value) || 0;
+        const expire = parseInt(document.getElementById('cfgCouponExpire').value) || 7;
+        const desc = document.getElementById('cfgCouponDesc').value.trim();
+
+        if (isNew && !coupon_id) { showToast('❌ 请输入优惠券ID'); return; }
+        if (!name) { showToast('❌ 请输入优惠券名称'); return; }
+
+        const body = {
+            action: 'update_coupon', coupon_id,
+            name, amount, condition_amount: condition,
+            expire_days: expire, description: desc,
+            status: 'active'
+        };
+
+        try {
+            const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
+            if (res.status === 401) { handleAuthExpired(); closeCfgModal(); return; }
+            const d = await res.json();
+            if (d.success) { showToast('✅ 优惠券已保存'); closeCfgModal(); loadConfig(); }
+            else { showToast('❌ ' + (d.message || '保存失败，可能优惠券ID已存在')); }
+        } catch(e) { showToast('❌ 网络错误'); }
+    }
 }
 </script>
 
