@@ -408,7 +408,8 @@
         let selectedRoom = null;
         let selectedCheckin = null;
         let selectedCheckout = null;
-        let claimedCoupons = [];
+        let claimedCoupons = []; // 已领取的优惠券ID列表（后端持久化）
+        let claimPhone = ''; // 领券用的手机号（本地缓存）
         let currentSlide = 0;
         let roomAvailability = {}; // 从后端获取真实房态
 
@@ -417,11 +418,14 @@
             initDates();
             renderHotelInfo();
             renderRooms();
-            renderCoupons();
             renderPhotos();
             renderReviews();
             startAutoSlide();
             fetchRoomAvailability();
+            // 从localStorage恢复领券手机号，加载已领取优惠券
+            claimPhone = localStorage.getItem('claimPhone') || '';
+            if (claimPhone) loadClaimedCoupons(claimPhone);
+            else renderCoupons();
         });
 
         // ========== 渲染 ==========
@@ -664,7 +668,7 @@
             
             // 重置表单
             document.getElementById('guestName').value = '';
-            document.getElementById('guestPhone').value = '';
+            document.getElementById('guestPhone').value = claimPhone || '';
             document.getElementById('guestNote').value = '';
             
             updateOrderSummary();
@@ -722,15 +726,73 @@
         }
 
         // ========== 优惠券 ==========
-        function claimCoupon(couponId) {
+        async function loadClaimedCoupons(phone) {
+            try {
+                const res = await fetch(`/api/coupon?phone=${encodeURIComponent(phone)}`);
+                const data = await res.json();
+                if (data.success && data.coupons) {
+                    claimedCoupons = data.coupons.map(c => c.id);
+                }
+            } catch(e) {}
+            renderCoupons();
+            if (typeof updateOrderSummary === 'function') updateOrderSummary();
+        }
+
+        async function claimCoupon(couponId) {
             if (claimedCoupons.includes(couponId)) return;
-            claimedCoupons.push(couponId);
-            const el = document.getElementById(`coupon-${couponId}`);
-            el.classList.add('claimed');
-            el.querySelector('.coupon-action').textContent = '已领取';
-            el.querySelector('.coupon-action').classList.add('claimed');
-            showToast('🎫 优惠券已领取');
-            updateOrderSummary();
+
+            // 需要手机号才能领券
+            let phone = claimPhone;
+            if (!phone) {
+                phone = prompt('请输入手机号领取优惠券：');
+                if (!phone) return;
+            }
+            phone = phone.replace(/\s/g, '');
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                showToast('❌ 手机号格式不正确');
+                return;
+            }
+
+            // 调用后端领取
+            const coupon = HOTEL.coupons.find(c => c.id === couponId);
+            try {
+                const res = await fetch('/api/coupon', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone,
+                        couponId,
+                        couponName: coupon ? coupon.name : '',
+                        amount: coupon ? coupon.amount : 0,
+                        condition: coupon ? coupon.condition : 0,
+                        expireDays: coupon ? coupon.expire : 7
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    claimPhone = phone;
+                    localStorage.setItem('claimPhone', phone);
+                    claimedCoupons.push(couponId);
+                    renderCoupons();
+                    showToast('🎫 优惠券已领取');
+                    if (typeof updateOrderSummary === 'function') updateOrderSummary();
+                } else {
+                    if (data.alreadyClaimed) {
+                        claimPhone = phone;
+                        localStorage.setItem('claimPhone', phone);
+                        if (!claimedCoupons.includes(couponId)) {
+                            claimedCoupons.push(couponId);
+                            renderCoupons();
+                        }
+                        showToast(data.used ? '该优惠券已使用' : '你已经领过这张券了');
+                    } else {
+                        showToast('❌ ' + (data.message || '领取失败'));
+                    }
+                }
+            } catch(e) {
+                showToast('❌ 网络错误，请重试');
+            }
         }
 
         // ========== 房态获取 ==========
@@ -829,6 +891,9 @@
                 
                 if (result.success) {
                     showToast('✅ 订单已提交！商家将尽快确认');
+                    // 同步领券手机号
+                    claimPhone = guestPhone;
+                    localStorage.setItem('claimPhone', guestPhone);
                     closeBookingModal();
                     // 刷新房态
                     setTimeout(fetchRoomAvailability, 2000);
