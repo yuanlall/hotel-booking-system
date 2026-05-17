@@ -408,7 +408,7 @@
         let selectedRoom = null;
         let selectedCheckin = null;
         let selectedCheckout = null;
-        let claimedCoupons = []; // 已领取的优惠券ID列表（后端持久化）
+        let claimedCoupons = []; // 已领取的优惠券对象数组 [{id, name, amount, condition, expireAt, used, source, dbId}]
         let claimPhone = ''; // 领券用的手机号（本地缓存）
         let currentSlide = 0;
         let roomAvailability = {}; // 从后端获取真实房态
@@ -483,14 +483,33 @@
             
             HOTEL.coupons.forEach(c => {
                 const item = document.createElement('div');
-                const claimed = claimedCoupons.includes(c.id);
-                item.className = `coupon-item${claimed ? ' claimed' : ''}`;
+                // 检查该类型券是否有可用的（未使用的）
+                const available = claimedCoupons.find(cc => cc.id === c.id && !cc.used);
+                const usedAll = claimedCoupons.some(cc => cc.id === c.id && cc.used);
+                const hasAny = claimedCoupons.some(cc => cc.id === c.id);
+
+                let stateClass = '';
+                let btnText = '领取';
+                if (available) {
+                    stateClass = ' claimed';
+                    btnText = '已领取';
+                } else if (usedAll && !available) {
+                    stateClass = ' claimed';
+                    btnText = '已使用';
+                }
+
+                item.className = `coupon-item${stateClass}`;
                 item.id = `coupon-${c.id}`;
+
+                // 分享券额外显示裂变说明
+                const extraHint = (c.id === 'share' && hasAny) ? '<div class="coupon-expire">分享给朋友，朋友领券可再得1张</div>' : '';
+
                 item.innerHTML = `
                     <div class="coupon-amount"><small>¥</small>${c.amount}</div>
                     <div class="coupon-desc">${c.desc}</div>
                     <div class="coupon-expire">${c.expire}天内有效</div>
-                    <button class="coupon-action${claimed ? ' claimed' : ''}" onclick="event.stopPropagation();claimCoupon('${c.id}')">${claimed ? '已领取' : '领取'}</button>`;
+                    ${extraHint}
+                    <button class="coupon-action${stateClass}" onclick="event.stopPropagation();claimCoupon('${c.id}')">${btnText}</button>`;
                 list.appendChild(item);
             });
         }
@@ -701,11 +720,12 @@
             let total = selectedRoom.price * nights;
             document.getElementById('sumRoomFee').textContent = `¥${total}`;
             
-            // 最优优惠券
+            // 最优优惠券（只选1张可用且金额最大的）
             let bestDiscount = 0;
             let bestCoupon = null;
-            claimedCoupons.forEach(cid => {
-                const c = HOTEL.coupons.find(co => co.id === cid);
+            claimedCoupons.forEach(cc => {
+                if (cc.used) return; // 跳过已使用的
+                const c = HOTEL.coupons.find(co => co.id === cc.id);
                 if (c && total >= c.condition && c.amount > bestDiscount) {
                     bestCoupon = c;
                     bestDiscount = c.amount;
@@ -730,8 +750,8 @@
             try {
                 const res = await fetch(`/api/coupon?phone=${encodeURIComponent(phone)}`);
                 const data = await res.json();
-                if (data.success && data.coupons) {
-                    claimedCoupons = data.coupons.map(c => c.id);
+                if (data.success) {
+                    claimedCoupons = data.coupons || []; // 对象数组，含 used/source/dbId
                 }
             } catch(e) {}
             renderCoupons();
@@ -739,7 +759,8 @@
         }
 
         async function claimCoupon(couponId) {
-            if (claimedCoupons.includes(couponId)) return;
+            // 检查是否已有可用的
+            if (claimedCoupons.find(cc => cc.id === couponId && !cc.used)) return;
 
             // 需要手机号才能领券
             let phone = claimPhone;
@@ -753,8 +774,16 @@
                 return;
             }
 
-            // 调用后端领取
+            // 分享券裂变：如果是分享券且已有分享券，提示可分享
             const coupon = HOTEL.coupons.find(c => c.id === couponId);
+            let referrerPhone = '';
+            if (couponId === 'share' && claimedCoupons.some(cc => cc.id === 'share')) {
+                // 已经领过分享券，这次是裂变领取
+                // 从URL参数获取推荐人手机号（裂变链接格式：?ref=138xxxx）
+                const urlParams = new URLSearchParams(window.location.search);
+                referrerPhone = urlParams.get('ref') || '';
+            }
+
             try {
                 const res = await fetch('/api/coupon', {
                     method: 'POST',
@@ -765,7 +794,8 @@
                         couponName: coupon ? coupon.name : '',
                         amount: coupon ? coupon.amount : 0,
                         condition: coupon ? coupon.condition : 0,
-                        expireDays: coupon ? coupon.expire : 7
+                        expireDays: coupon ? coupon.expire : 7,
+                        referrerPhone
                     })
                 });
                 const data = await res.json();
@@ -773,19 +803,19 @@
                 if (data.success) {
                     claimPhone = phone;
                     localStorage.setItem('claimPhone', phone);
-                    claimedCoupons.push(couponId);
-                    renderCoupons();
+                    // 刷新优惠券列表
+                    await loadClaimedCoupons(phone);
                     showToast('🎫 优惠券已领取');
-                    if (typeof updateOrderSummary === 'function') updateOrderSummary();
+                    // 如果有裂变奖励
+                    if (data.reward) {
+                        setTimeout(() => showToast('🎉 分享奖励：推荐人获得1张分享券'), 1500);
+                    }
                 } else {
                     if (data.alreadyClaimed) {
                         claimPhone = phone;
                         localStorage.setItem('claimPhone', phone);
-                        if (!claimedCoupons.includes(couponId)) {
-                            claimedCoupons.push(couponId);
-                            renderCoupons();
-                        }
-                        showToast(data.used ? '该优惠券已使用' : '你已经领过这张券了');
+                        await loadClaimedCoupons(phone);
+                        showToast(data.used ? '该优惠券已使用' : '你已经有一张未使用的了');
                     } else {
                         showToast('❌ ' + (data.message || '领取失败'));
                     }
@@ -859,12 +889,19 @@
             const nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000*60*60*24));
             let total = selectedRoom.price * nights;
             
-            // 最优优惠
-            claimedCoupons.forEach(cid => {
-                const c = HOTEL.coupons.find(co => co.id === cid);
-                if (c && total >= c.condition) total -= c.amount;
+            // 选最优1张可用优惠券
+            let usedCouponId = null;
+            let couponDiscount = 0;
+            claimedCoupons.forEach(cc => {
+                if (cc.used) return;
+                const c = HOTEL.coupons.find(co => co.id === cc.id);
+                if (c && total >= c.condition && c.amount > couponDiscount) {
+                    usedCouponId = cc.id;
+                    couponDiscount = c.amount;
+                }
             });
-            
+            if (usedCouponId) total -= couponDiscount;
+
             const orderData = {
                 hotel: HOTEL.name,
                 roomId: selectedRoom.id,
@@ -876,7 +913,7 @@
                 guestName,
                 guestPhone,
                 note,
-                coupons: claimedCoupons,
+                coupons: usedCouponId ? [usedCouponId] : [],
                 originalTotal: selectedRoom.price * nights,
                 finalTotal: total
             };
@@ -894,6 +931,17 @@
                     // 同步领券手机号
                     claimPhone = guestPhone;
                     localStorage.setItem('claimPhone', guestPhone);
+                    // 标记优惠券已使用（后端 + 本地）
+                    if (usedCouponId) {
+                        fetch('/api/coupon', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone: guestPhone, couponId: usedCouponId, orderId: result.orderId || '' })
+                        }).catch(e => console.error('Mark coupon used error:', e));
+                        // 本地也更新状态
+                        const cc = claimedCoupons.find(c => c.id === usedCouponId && !c.used);
+                        if (cc) cc.used = true;
+                    }
                     closeBookingModal();
                     // 刷新房态
                     setTimeout(fetchRoomAvailability, 2000);
