@@ -97,21 +97,7 @@ export async function onRequestGet(context) {
   // 初始化表结构（仅首次调用）
   if (action === 'init') {
     try {
-      await env.DB.exec(`
-        CREATE TABLE IF NOT EXISTS coupon_claims (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          phone TEXT NOT NULL,
-          coupon_id TEXT NOT NULL,
-          coupon_name TEXT,
-          amount INTEGER DEFAULT 0,
-          condition_amount INTEGER DEFAULT 0,
-          expire_at TEXT,
-          used INTEGER DEFAULT 0,
-          used_order_id TEXT,
-          created_at TEXT,
-          UNIQUE(phone, coupon_id)
-        )
-      `);
+      await env.DB.exec(`CREATE TABLE IF NOT EXISTS coupon_claims (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT NOT NULL, coupon_id TEXT NOT NULL, coupon_name TEXT, amount INTEGER DEFAULT 0, condition_amount INTEGER DEFAULT 0, expire_at TEXT, used INTEGER DEFAULT 0, used_order_id TEXT, created_at TEXT, UNIQUE(phone, coupon_id))`);
       return jsonResponse({ success: true, message: 'coupon_claims 表已就绪' });
     } catch (e) {
       return jsonResponse({ success: false, message: '建表失败: ' + e.message }, 500);
