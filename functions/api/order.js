@@ -310,7 +310,18 @@ export async function onRequestGet(context) {
           source: 'd1'
         }));
 
-        return jsonResponse({ success: true, orders, source: 'd1', count: orders.length });
+        // 附带房间配置，供管理后台动态更新房态
+        let roomConfig = null;
+        try {
+          const roomResult = await env.DB.prepare(
+            'SELECT room_id, name, total_stock FROM rooms WHERE status = ? ORDER BY sort_order'
+          ).bind('active').all();
+          if (roomResult.results && roomResult.results.length > 0) {
+            roomConfig = roomResult.results;
+          }
+        } catch(e) { /* 忽略房间配置读取失败 */ }
+
+        return jsonResponse({ success: true, orders, source: 'd1', count: orders.length, roomConfig });
       } catch(e) {
         console.error('D1 read error:', e.message);
         // D1 读取失败，fallback 到飞书

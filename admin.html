@@ -567,7 +567,7 @@ let ROOM_CONFIG = [
     { id: 'king', name: '豪华大床房', totalStock: 5 },
     { id: 'suite', name: '行政套房', totalStock: 2 }
 ];
-const ROOM_NAME_TO_ID = {
+let ROOM_NAME_TO_ID = {
     '标准双床房': 'standard', '豪华大床房': 'king', '行政套房': 'suite'
 };
 
@@ -623,6 +623,9 @@ async function loadOrders() {
         // 同步房型配置
         if (data.roomConfig) {
             ROOM_CONFIG = data.roomConfig.map(r => ({ id: r.room_id, name: r.name, totalStock: r.total_stock }));
+            // 动态重建房型名称→ID映射
+            ROOM_NAME_TO_ID = {};
+            ROOM_CONFIG.forEach(r => { ROOM_NAME_TO_ID[r.name] = r.id; });
         }
     } catch(e) { orders = []; }
     renderRoomManager(); renderOrders(); updateStats();
