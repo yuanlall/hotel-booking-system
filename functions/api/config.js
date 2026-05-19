@@ -80,14 +80,14 @@ export async function onRequestGet(context) {
       // 检查是否有种子数据
       const hotelCount = await env.DB.prepare('SELECT COUNT(*) as cnt FROM hotels').first();
       if (hotelCount && hotelCount.cnt === 0) {
-        // ===== 种子数据：香江城迹酒店 =====
+        // ===== 种子数据：香江国际酒店 =====
         const now = new Date().toISOString();
 
         // 插入酒店
         await env.DB.prepare(
           'INSERT INTO hotels (name, address, phone, rating, review_count, tags, description, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         ).bind(
-          '香江城迹酒店',
+          '香江国际酒店',
           '赣州市章贡区长冈路13号达芬奇国际中心9栋',
           '0571-12345678',
           4.8,
@@ -97,7 +97,7 @@ export async function onRequestGet(context) {
           1, now, now
         ).run();
 
-        const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE name = ?').bind('香江城迹酒店').first();
+        const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE name = ?').bind('香江国际酒店').first();
         const hotelId = hotel.id;
 
         // 插入房型
