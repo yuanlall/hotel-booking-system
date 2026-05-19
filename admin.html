@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; background: #f0f2f5; color: #333; }
 
-        /* ========== 登录页样�?========== */
+        /* ========== 登录页样式 ========== */
         .login-wrapper { 
             display: flex; align-items: center; justify-content: center; 
             min-height: 100vh; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff6b35 100%);
@@ -89,7 +89,7 @@
         .stat-income .stat-value { color: #ff4d4f; }
         .stat-label { font-size: 12px; color: #999; margin-top: 4px; }
         
-        /* 日期选择�?*/
+        /* 日期选择器 */
         .date-picker-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding: 12px; background: #fafafa; border-radius: 10px; }
         .date-picker-label { font-size: 13px; color: #666; white-space: nowrap; }
         .date-picker-input { flex: 1; padding: 8px 12px; border: 1.5px solid #d9d9d9; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
@@ -122,7 +122,7 @@
         .btn-contact { background: #1890ff; color: #fff; }
         .btn:active { opacity: 0.85; }
         
-        /* 房态管�?*/
+        /* 房态管理 */
         .room-manager { margin-bottom: 12px; padding: 14px; background: #fafafa; border-radius: 10px; }
         .room-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .room-row:last-child { border-bottom: none; }
@@ -187,7 +187,7 @@
         .cfg-row .cfg-field { flex: 1; margin-bottom: 0; }
         .cfg-hint { font-size: 11px; color: #bbb; margin-top: 4px; }
 
-        /* 房型/优惠券卡�?*/
+        /* 房型/优惠券卡片 */
         .cfg-card {
             background: #fafafa; border: 1.5px solid #f0f0f0; border-radius: 10px;
             padding: 14px; margin-bottom: 10px;
@@ -213,7 +213,7 @@
         }
         .cfg-add-btn:active { border-color: #ff6b35; color: #ff6b35; }
 
-        /* 优惠券色�?*/
+        /* 优惠券色块 */
         .coupon-type-badge {
             display: inline-block; padding: 2px 8px; border-radius: 4px;
             font-size: 11px; font-weight: 600; margin-left: 8px;
@@ -231,18 +231,18 @@
         <div class="login-logo">
             <div class="login-logo-icon">🏨</div>
             <h2>酒店管理后台</h2>
-            <p>请输入账号密码登�?/p>
+            <p>请输入账号密码登录</p>
         </div>
         <div class="login-field">
             <label>👤 账号</label>
-            <input type="text" class="login-input" id="loginAccount" placeholder="请输入账�? autocomplete="username">
+            <input type="text" class="login-input" id="loginAccount" placeholder="请输入账号" autocomplete="username">
         </div>
         <div class="login-field">
             <label>🔒 密码</label>
-            <input type="password" class="login-input" id="loginPassword" placeholder="请输入密�? autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+            <input type="password" class="login-input" id="loginPassword" placeholder="请输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
         </div>
-        <button class="login-btn" onclick="doLogin()">�?�?/button>
-        <div class="login-error" id="loginError">�?账号或密码错误，请重�?/div>
+        <button class="login-btn" onclick="doLogin()">登 录</button>
+        <div class="login-error" id="loginError">❌ 账号或密码错误，请重试</div>
         <div class="login-hint">🔐 仅限酒店授权人员访问</div>
     </div>
 </div>
@@ -253,9 +253,9 @@
     <div class="header">
         <div>
             <h1>🏨 酒店管理后台</h1>
-            <p id="hotelNameHeader">实时订单管理 · 房态自动同�?/p>
+            <p id="hotelNameHeader">实时订单管理 · 房态自动同步</p>
         </div>
-        <button class="logout-btn" onclick="doLogout()">退出登�?/button>
+        <button class="logout-btn" onclick="doLogout()">退出登录</button>
         <!-- Tab 导航 -->
         <div class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('orders')">📋 订单管理</button>
@@ -270,11 +270,11 @@
             <div class="stats-row">
                 <div class="stat-card stat-pending">
                     <div class="stat-value" id="statPending">0</div>
-                    <div class="stat-label">待确�?/div>
+                    <div class="stat-label">待确认</div>
                 </div>
                 <div class="stat-card stat-confirmed">
                     <div class="stat-value" id="statConfirmed">0</div>
-                    <div class="stat-label">已确�?/div>
+                    <div class="stat-label">已确认</div>
                 </div>
                 <div class="stat-card stat-income">
                     <div class="stat-value" id="statToday">0</div>
@@ -286,13 +286,13 @@
         <div class="content">
             <!-- 房态管理（按日期查看） -->
             <div class="section">
-                <div class="section-title">🛏�?房态管理（按日期）</div>
+                <div class="section-title">🛏️ 房态管理（按日期）</div>
                 
-                <!-- 日期选择�?-->
+                <!-- 日期选择器 -->
                 <div class="date-picker-row">
                     <button class="date-nav-btn" onclick="changeDate(-1)">◀</button>
                     <input type="date" class="date-picker-input" id="datePicker" onchange="onDateChange()">
-                    <button class="date-nav-btn" onclick="changeDate(1)">�?/button>
+                    <button class="date-nav-btn" onclick="changeDate(1)">▶</button>
                     <button class="date-today-btn" onclick="goToday()">今天</button>
                 </div>
                 <div class="selected-date-display" id="dateDisplay"></div>
@@ -311,18 +311,19 @@
             <div class="section" style="background:#f0f7ff;">
                 <div class="section-title" style="color:#1890ff;">💡 操作提示</div>
                 <div style="font-size:13px;color:#666;line-height:1.8;">
-                    1. 选择日期查看当天各房型剩余房�?br>
-                    2. 房量根据「待确认+已确认」订单自动计�?br>
-                    3. 点击「确认」→ 订单状态更�?+ 房量自动扣减<br>
+                    1. 选择日期查看当天各房型剩余房量<br>
+                    2. 房量根据「待确认+已确认」订单自动计算<br>
+                    3. 点击「确认」→ 订单状态更新 + 房量自动扣减<br>
                     4. 点击「拒绝」→ 订单取消 + 房量自动释放<br>
-                    5. 数据�?0秒自动刷�?                </div>
+                    5. 数据每30秒自动刷新
+                </div>
             </div>
         </div>
 
         <!-- 确认弹窗 -->
         <div class="modal-overlay" id="confirmModal">
             <div class="modal">
-                <div class="modal-title">�?确认订单</div>
+                <div class="modal-title">✅ 确认订单</div>
                 <div class="modal-content" id="confirmContent"></div>
                 <div class="modal-actions">
                     <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">取消</button>
@@ -346,7 +347,7 @@
             </div>
             <div class="cfg-field">
                 <div class="cfg-label">详细地址</div>
-                <input type="text" class="cfg-input" id="cfgHotelAddress" placeholder="省市�?街道+门牌�?>
+                <input type="text" class="cfg-input" id="cfgHotelAddress" placeholder="省市区+街道+门牌号">
             </div>
             <div class="cfg-row">
                 <div class="cfg-field">
@@ -364,7 +365,7 @@
                     <input type="time" class="cfg-input" id="cfgCheckinTime" style="width:120px;">
                 </div>
                 <div class="cfg-field">
-                    <div class="cfg-label">退房时�?/div>
+                    <div class="cfg-label">退房时间</div>
                     <input type="time" class="cfg-input" id="cfgCheckoutTime" style="width:120px;">
                 </div>
                 <div class="cfg-field">
@@ -372,17 +373,17 @@
                     <select class="cfg-input" id="cfgParking" style="width:100px;">
                         <option value="免费">免费</option>
                         <option value="收费">收费</option>
-                        <option value="�?>�?/option>
+                        <option value="无">无</option>
                     </select>
                 </div>
             </div>
             <div class="cfg-field">
-                <div class="cfg-label">酒店标签（逗号分隔�?/div>
+                <div class="cfg-label">酒店标签（逗号分隔）</div>
                 <input type="text" class="cfg-input" id="cfgHotelTags" placeholder="官方直营,近博物馆,免费停车">
-                <div class="cfg-hint">第一个标签会显示为橙色高�?/div>
+                <div class="cfg-hint">第一个标签会显示为橙色高亮</div>
             </div>
             <div class="cfg-field">
-                <div class="cfg-label">酒店简�?/div>
+                <div class="cfg-label">酒店简介</div>
                 <textarea class="cfg-textarea" id="cfgHotelDesc" placeholder="一句话介绍酒店特色"></textarea>
             </div>
         </div>
@@ -390,33 +391,34 @@
         <!-- 房型管理 -->
         <div class="cfg-section">
             <div class="cfg-section-title">
-                <span><span class="icon">🛏�?/span> 房型管理</span>
+                <span><span class="icon">🛏️</span> 房型管理</span>
             </div>
             <div id="cfgRoomList"></div>
             <button class="cfg-add-btn" onclick="addRoomCard()">+ 添加房型</button>
         </div>
 
-        <!-- 优惠券模�?-->
+        <!-- 优惠券模板 -->
         <div class="cfg-section">
             <div class="cfg-section-title">
-                <span><span class="icon">🎫</span> 优惠券模�?/span>
+                <span><span class="icon">🎫</span> 优惠券模板</span>
             </div>
             <div id="cfgCouponList"></div>
-            <button class="cfg-add-btn" onclick="addCouponCard()">+ 添加优惠�?/button>
+            <button class="cfg-add-btn" onclick="addCouponCard()">+ 添加优惠券</button>
         </div>
 
         <!-- 配置提示 -->
         <div class="cfg-section" style="background:#f0f7ff;">
             <div class="cfg-section-title" style="color:#1890ff;">💡 配置说明</div>
             <div style="font-size:13px;color:#666;line-height:1.8;">
-                1. 修改后点击「保存」，前端页面刷新后立即生�?br>
-                2. 房型库存是总房间数，实际可�?= 总库�?- 已确认订单占�?br>
-                3. 优惠�?amount=优惠金额，condition=满减门槛，expire=有效天数<br>
-                4. 房型ID（如 standard）不可重复，保存后无法修�?            </div>
+                1. 修改后点击「保存」，前端页面刷新后立即生效<br>
+                2. 房型库存是总房间数，实际可订 = 总库存 - 已确认订单占用<br>
+                3. 优惠券 amount=优惠金额，condition=满减门槛，expire=有效天数<br>
+                4. 房型ID（如 standard）不可重复，保存后无法修改
+            </div>
         </div>
     </div>
 
-    <!-- ==================== 配置编辑弹窗（房�?优惠券） ==================== -->
+    <!-- ==================== 配置编辑弹窗（房型/优惠券） ==================== -->
     <div class="modal-overlay" id="cfgModal">
         <div class="modal">
             <div class="modal-title" id="cfgModalTitle">编辑</div>
@@ -444,7 +446,7 @@ async function doLogin() {
     const errEl = document.getElementById('loginError');
 
     if (!acc || !pwd) {
-        errEl.textContent = '�?请输入账号和密码';
+        errEl.textContent = '❌ 请输入账号和密码';
         errEl.style.display = 'block';
         return;
     }
@@ -464,7 +466,7 @@ async function doLogin() {
             errEl.style.display = 'none';
             showMainApp();
         } else {
-            errEl.textContent = '�?' + (data.message || '账号或密码错�?);
+            errEl.textContent = '❌ ' + (data.message || '账号或密码错误');
             errEl.style.display = 'block';
             const pwInput = document.getElementById('loginPassword');
             pwInput.style.animation = 'none'; pwInput.offsetHeight;
@@ -472,7 +474,7 @@ async function doLogin() {
             pwInput.value = ''; pwInput.focus();
         }
     } catch(e) {
-        errEl.textContent = '�?网络错误，请重试';
+        errEl.textContent = '❌ 网络错误，请重试';
         errEl.style.display = 'block';
     }
 }
@@ -484,7 +486,7 @@ function handleAuthExpired() {
     sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(TOKEN_KEY);
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('loginPage').style.display = 'flex';
-    document.getElementById('loginError').textContent = '⚠️ 登录已过期，请重新登�?;
+    document.getElementById('loginError').textContent = '⚠️ 登录已过期，请重新登录';
     document.getElementById('loginError').style.display = 'block';
 }
 
@@ -554,18 +556,19 @@ function switchTab(tab) {
 
 
 // ============================================================
-//  📊 订单管理（Tab1�?// ============================================================
+//  📊 订单管理（Tab1）
+// ============================================================
 
 let orders = [];
 let currentOrderId = null;
 let selectedDate = null;
 let ROOM_CONFIG = [
-    { id: 'standard', name: '标准双床�?, totalStock: 8 },
-    { id: 'king', name: '豪华大床�?, totalStock: 5 },
+    { id: 'standard', name: '标准双床房', totalStock: 8 },
+    { id: 'king', name: '豪华大床房', totalStock: 5 },
     { id: 'suite', name: '行政套房', totalStock: 2 }
 ];
 const ROOM_NAME_TO_ID = {
-    '标准双床�?: 'standard', '豪华大床�?: 'king', '行政套房': 'suite'
+    '标准双床房': 'standard', '豪华大床房': 'king', '行政套房': 'suite'
 };
 
 function initDatePicker() {
@@ -582,7 +585,7 @@ function formatDate(d) {
 function formatDisplayDate(dateStr) {
     const d = new Date(dateStr + 'T00:00:00');
     const w = ['周日','周一','周二','周三','周四','周五','周六'];
-    return `${d.getMonth()+1}�?{d.getDate()}�?${w[d.getDay()]}`;
+    return `${d.getMonth()+1}月${d.getDate()}日 ${w[d.getDay()]}`;
 }
 
 function parseDate(s) { return new Date(s + 'T00:00:00'); }
@@ -607,8 +610,8 @@ function updateDateDisplay() {
     const el = document.getElementById('dateDisplay');
     const today = formatDate(new Date());
     el.innerHTML = selectedDate === today
-        ? `当前查看�?strong>今天 ${formatDisplayDate(selectedDate)}</strong>`
-        : `当前查看�?strong>${formatDisplayDate(selectedDate)}</strong>`;
+        ? `当前查看：<strong>今天 ${formatDisplayDate(selectedDate)}</strong>`
+        : `当前查看：<strong>${formatDisplayDate(selectedDate)}</strong>`;
 }
 
 async function loadOrders() {
@@ -636,21 +639,21 @@ function renderRoomManager() {
         if (isBetween(selectedDate, order.checkin, order.checkout)) {
             occupied[roomId] += 1;
             if (!dayOrderDetails[roomId]) dayOrderDetails[roomId] = [];
-            dayOrderDetails[roomId].push(`${order.guestName}(${order.checkin}�?{order.checkout})`);
+            dayOrderDetails[roomId].push(`${order.guestName}(${order.checkin}→${order.checkout})`);
         }
     });
     el.innerHTML = ROOM_CONFIG.map(r => {
         const used = occupied[r.id], left = Math.max(0, r.totalStock - used);
         const isAvailable = left > 0, isLow = left <= 1 && left > 0;
-        return `<div class="room-row"><div><div class="room-name">${r.name}</div><div class="room-stock-info">总共 ${r.totalStock} �?· 已用 <span style="color:${used>0?'#ff4d4f':'#999'};font-weight:600;">${used}</span> · 剩余 <span style="color:${left<=0?'#ff4d4f':isLow?'#fa8c16':'#52c41a'};font-weight:700;" ${isLow?'class="stock-warning"':''}>${left}</span> �?/div></div><button class="stock-btn ${isAvailable?'on':'off'}" onclick="toggleRoom('${r.id}')" ${!isAvailable?'disabled style="opacity:0.5;cursor:not-allowed;"':''}>${isAvailable?(isLow?'紧张':'可订'):'满房'}</button></div>`;
+        return `<div class="room-row"><div><div class="room-name">${r.name}</div><div class="room-stock-info">总共 ${r.totalStock} 间 · 已用 <span style="color:${used>0?'#ff4d4f':'#999'};font-weight:600;">${used}</span> · 剩余 <span style="color:${left<=0?'#ff4d4f':isLow?'#fa8c16':'#52c41a'};font-weight:700;" ${isLow?'class="stock-warning"':''}>${left}</span> 间</div></div><button class="stock-btn ${isAvailable?'on':'off'}" onclick="toggleRoom('${r.id}')" ${!isAvailable?'disabled style="opacity:0.5;cursor:not-allowed;"':''}>${isAvailable?(isLow?'紧张':'可订'):'满房'}</button></div>`;
     }).join('');
     const hintEl = document.getElementById('dayOrdersHint');
     const allDetails = Object.entries(dayOrderDetails).filter(([_,l])=>l.length>0);
     const id2name = {}; ROOM_CONFIG.forEach(r=>id2name[r.id]=r.name);
     if (allDetails.length > 0) {
-        hintEl.innerHTML = '<strong>📌 ' + formatDisplayDate(selectedDate) + ' 占用明细�?/strong><br>' + allDetails.map(([rid,list])=>`· <strong>${id2name[rid]}</strong>�?{list.join('�?)}`).join('<br>');
+        hintEl.innerHTML = '<strong>📌 ' + formatDisplayDate(selectedDate) + ' 占用明细：</strong><br>' + allDetails.map(([rid,list])=>`· <strong>${id2name[rid]}</strong>：${list.join('、')}`).join('<br>');
     } else {
-        hintEl.innerHTML = '<strong>�?' + formatDisplayDate(selectedDate) + '</strong> 暂无订单占用';
+        hintEl.innerHTML = '<strong>✅ ' + formatDisplayDate(selectedDate) + '</strong> 暂无订单占用';
     }
     hintEl.style.display = 'block';
 }
@@ -665,19 +668,19 @@ function renderOrders() {
         <div class="order-card">
             <div class="order-header">
                 <span class="order-id">${order.id}</span>
-                <span class="order-status ${order.status==='confirmed'?'status-confirmed':order.status==='cancelled'?'status-cancelled':'status-pending'}">${order.statusText||'待确�?}</span>
+                <span class="order-status ${order.status==='confirmed'?'status-confirmed':order.status==='cancelled'?'status-cancelled':'status-pending'}">${order.statusText||'待确认'}</span>
             </div>
             <div class="order-room">${order.roomName}</div>
-            <div class="order-dates">📅 ${order.checkin} �?${order.checkout} · ${order.nights}�?/div>
+            <div class="order-dates">📅 ${order.checkin} → ${order.checkout} · ${order.nights}晚</div>
             <div class="order-guest">
                 <span>👤 ${order.guestName} · ${order.guestPhone}</span>
                 <span class="order-price">¥${order.finalTotal}</span>
             </div>
             ${order.status === 'pending' ? `
             <div class="order-actions">
-                <button class="btn btn-confirm" onclick="showConfirmModal('${order.id}')">�?确认</button>
+                <button class="btn btn-confirm" onclick="showConfirmModal('${order.id}')">✅ 确认</button>
                 <button class="btn btn-contact" onclick="location.href='tel:${order.guestPhone}'">📞 联系</button>
-                <button class="btn btn-cancel" onclick="cancelOrder('${order.id}')">�?拒绝</button>
+                <button class="btn btn-cancel" onclick="cancelOrder('${order.id}')">❌ 拒绝</button>
             </div>` : ''}
         </div>
     `).join('');
@@ -699,7 +702,7 @@ function showConfirmModal(orderId) {
     currentOrderId = orderId;
     const order = orders.find(o=>o.id===orderId);
     document.getElementById('confirmContent').innerHTML =
-        `确认接收以下订单�?br><br><strong>${order.roomName}</strong><br>${order.checkin} - ${order.checkout}<br>客人�?{order.guestName}<br>实付�?strong style="color:#ff6b35;">¥${order.finalTotal}</strong>`;
+        `确认接收以下订单：<br><br><strong>${order.roomName}</strong><br>${order.checkin} - ${order.checkout}<br>客人：${order.guestName}<br>实付：<strong style="color:#ff6b35;">¥${order.finalTotal}</strong>`;
     document.getElementById('confirmModal').classList.add('active');
 }
 function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('active'); }
@@ -714,9 +717,9 @@ async function doConfirm() {
         });
         if (res.status === 401) { handleAuthExpired(); closeConfirmModal(); return; }
         const d = await res.json();
-        if (d.success) { order.status='confirmed'; order.statusText='已确�?; showToast('�?订单已确�?); }
-        else { showToast('�?'+(d.message||'更新失败')); }
-    } catch(e) { showToast('�?网络错误'); }
+        if (d.success) { order.status='confirmed'; order.statusText='已确认'; showToast('✅ 订单已确认'); }
+        else { showToast('❌ '+(d.message||'更新失败')); }
+    } catch(e) { showToast('❌ 网络错误'); }
     closeConfirmModal(); renderOrders(); updateStats(); renderRoomManager();
 }
 
@@ -727,8 +730,8 @@ async function cancelOrder(orderId) {
         const res = await fetch('/api/order',{method:'POST',headers:getAuthHeaders(),body:JSON.stringify({action:'updateStatus',recordId:order.recordId||orderId,status:'cancelled'})});
         if (res.status === 401) { handleAuthExpired(); return; }
     }catch(e){}
-    order.status='cancelled'; order.statusText='已拒�?;
-    renderOrders(); updateStats(); renderRoomManager(); showToast('�?订单已拒绝，房量已释�?);
+    order.status='cancelled'; order.statusText='已拒绝';
+    renderOrders(); updateStats(); renderRoomManager(); showToast('❌ 订单已拒绝，房量已释放');
 }
 
 function showToast(msg) {
@@ -739,13 +742,15 @@ function showToast(msg) {
 
 
 // ============================================================
-//  ⚙️ 配置管理（Tab2�?// ============================================================
+//  ⚙️ 配置管理（Tab2）
+// ============================================================
 
-let configData = null;      // �?API 加载的原始配�?let cfgModalType = '';        // 'room' | 'coupon'
+let configData = null;      // 从 API 加载的原始配置
+let cfgModalType = '';        // 'room' | 'coupon'
 let cfgModalIndex = -1;       // 编辑第几个，-1 表示新增
 let cfgModalData = {};        // 弹窗中的临时数据
 
-// 加载配置 �?填充表单
+// 加载配置 → 填充表单
 async function loadConfig() {
     try {
         const res = await fetch('/api/config');
@@ -793,16 +798,16 @@ async function saveHotelConfig() {
         const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
         if (res.status === 401) { handleAuthExpired(); return; }
         const d = await res.json();
-        showToast(d.success ? '�?酒店信息已保�? : '�?' + (d.message || '保存失败'));
+        showToast(d.success ? '✅ 酒店信息已保存' : '❌ ' + (d.message || '保存失败'));
         if (d.success) loadConfig();
-    } catch(e) { showToast('�?网络错误'); }
+    } catch(e) { showToast('❌ 网络错误'); }
 }
 
 // ===== 房型管理 =====
 function renderRoomCards(rooms) {
     const el = document.getElementById('cfgRoomList');
     if (!rooms || rooms.length === 0) {
-        el.innerHTML = '<div style="text-align:center;padding:20px;color:#999;font-size:13px;">暂无房型，点击下方添�?/div>';
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:#999;font-size:13px;">暂无房型，点击下方添加</div>';
         return;
     }
     el.innerHTML = rooms.map((r, i) => `
@@ -812,14 +817,14 @@ function renderRoomCards(rooms) {
                     <span class="cfg-card-name">${r.name}</span>
                     <span style="font-size:12px;color:#999;margin-left:6px;">${r.area || ''} · ${r.bedType || ''}</span>
                 </span>
-                <span class="cfg-card-price">¥${r.price}/�?/span>
+                <span class="cfg-card-price">¥${r.price}/晚</span>
             </div>
             <div style="font-size:12px;color:#666;margin-bottom:8px;">
-                库存 <strong>${r.stock}</strong> �?· 特色�?{(r.features||[]).join('�?)}
+                库存 <strong>${r.stock}</strong> 间 · 特色：${(r.features||[]).join('、')}
             </div>
             <div class="cfg-card-actions">
                 <button class="cfg-card-btn primary" onclick="editRoom(${i})">✏️ 编辑</button>
-                <button class="cfg-card-btn danger" onclick="deleteRoom(${i})" ${rooms.length<=1?'disabled':''}>🗑�?删除</button>
+                <button class="cfg-card-btn danger" onclick="deleteRoom(${i})" ${rooms.length<=1?'disabled':''}>🗑️ 删除</button>
             </div>
         </div>
     `).join('');
@@ -847,13 +852,13 @@ function buildRoomFormHTML() {
     const isEdit = cfgModalIndex >= 0;
     return `
         <div class="cfg-field">
-            <div class="cfg-label">房型ID（英文，�?standard�?/div>
+            <div class="cfg-label">房型ID（英文，如 standard）</div>
             <input type="text" class="cfg-input" id="cfgRoomId" value="${cfgModalData.room_id}" ${isEdit?'disabled style="background:#f5f5f5;"':''} placeholder="standard">
-            ${isEdit?'<div class="cfg-hint">房型ID创建后不可修�?/div>':''}
+            ${isEdit?'<div class="cfg-hint">房型ID创建后不可修改</div>':''}
         </div>
         <div class="cfg-field">
             <div class="cfg-label">房型名称</div>
-            <input type="text" class="cfg-input" id="cfgRoomName" value="${cfgModalData.name}" placeholder="标准双床�?>
+            <input type="text" class="cfg-input" id="cfgRoomName" value="${cfgModalData.name}" placeholder="标准双床房">
         </div>
         <div class="cfg-row">
             <div class="cfg-field">
@@ -861,7 +866,7 @@ function buildRoomFormHTML() {
                 <input type="number" class="cfg-input" id="cfgRoomPrice" value="${cfgModalData.price}" min="0">
             </div>
             <div class="cfg-field">
-                <div class="cfg-label">库存（间�?/div>
+                <div class="cfg-label">库存（间）</div>
                 <input type="number" class="cfg-input" id="cfgRoomStock" value="${cfgModalData.stock}" min="0" style="width:80px;">
             </div>
         </div>
@@ -876,7 +881,7 @@ function buildRoomFormHTML() {
             </div>
         </div>
         <div class="cfg-field">
-            <div class="cfg-label">特色设施（逗号分隔�?/div>
+            <div class="cfg-label">特色设施（逗号分隔）</div>
             <input type="text" class="cfg-input" id="cfgRoomFeatures" value="${cfgModalData.features}" placeholder="免费WiFi,含早,客厅">
         </div>
     `;
@@ -884,7 +889,7 @@ function buildRoomFormHTML() {
 
 async function deleteRoom(index) {
     const r = configData.rooms[index];
-    if (!confirm(`确定删除房型�?{r.name}」吗？\n删除后该房型将不再显示在前端。`)) return;
+    if (!confirm(`确定删除房型「${r.name}」吗？\n删除后该房型将不再显示在前端。`)) return;
     try {
         const res = await fetch('/api/config', {
             method: 'POST', headers: getAuthHeaders(),
@@ -892,13 +897,13 @@ async function deleteRoom(index) {
         });
         if (res.status === 401) { handleAuthExpired(); return; }
         const d = await res.json();
-        showToast(d.success ? '�?房型已删�? : '�?' + (d.message || '删除失败'));
+        showToast(d.success ? '✅ 房型已删除' : '❌ ' + (d.message || '删除失败'));
         if (d.success) loadConfig();
-    } catch(e) { showToast('�?网络错误'); }
+    } catch(e) { showToast('❌ 网络错误'); }
 }
 
 
-// ===== 优惠券模�?=====
+// ===== 优惠券模板 =====
 function renderCouponCards(coupons) {
     const el = document.getElementById('cfgCouponList');
     if (!coupons || coupons.length === 0) {
@@ -916,10 +921,11 @@ function renderCouponCards(coupons) {
                 <span class="cfg-card-price" style="color:#ff4d4f;">¥${c.amount}</span>
             </div>
             <div style="font-size:12px;color:#666;margin-bottom:8px;">
-                ${c.desc} · 有效${c.expire}�?            </div>
+                ${c.desc} · 有效${c.expire}天
+            </div>
             <div class="cfg-card-actions">
                 <button class="cfg-card-btn primary" onclick="editCoupon(${i})">✏️ 编辑</button>
-                <button class="cfg-card-btn danger" onclick="deleteCoupon(${i})">🗑�?删除</button>
+                <button class="cfg-card-btn danger" onclick="deleteCoupon(${i})">🗑️ 删除</button>
             </div>
         </div>
     `).join('');
@@ -928,7 +934,7 @@ function renderCouponCards(coupons) {
 function addCouponCard() {
     cfgModalType = 'coupon'; cfgModalIndex = -1;
     cfgModalData = { coupon_id: '', name: '', amount: 0, condition: 0, expire: 7, desc: '' };
-    openCfgModal('添加优惠�?, buildCouponFormHTML());
+    openCfgModal('添加优惠券', buildCouponFormHTML());
 }
 
 function editCoupon(index) {
@@ -938,28 +944,28 @@ function editCoupon(index) {
         coupon_id: c.id, name: c.name, amount: c.amount,
         condition: c.condition, expire: c.expire, desc: c.desc
     };
-    openCfgModal('编辑优惠�?, buildCouponFormHTML());
+    openCfgModal('编辑优惠券', buildCouponFormHTML());
 }
 
 function buildCouponFormHTML() {
     const isEdit = cfgModalIndex >= 0;
     return `
         <div class="cfg-field">
-            <div class="cfg-label">优惠券ID（英文，�?new�?/div>
+            <div class="cfg-label">优惠券ID（英文，如 new）</div>
             <input type="text" class="cfg-input" id="cfgCouponId" value="${cfgModalData.coupon_id}" ${isEdit?'disabled style="background:#f5f5f5;"':''} placeholder="new">
-            ${isEdit?'<div class="cfg-hint">优惠券ID创建后不可修�?/div>':''}
+            ${isEdit?'<div class="cfg-hint">优惠券ID创建后不可修改</div>':''}
         </div>
         <div class="cfg-field">
-            <div class="cfg-label">优惠券名�?/div>
+            <div class="cfg-label">优惠券名称</div>
             <input type="text" class="cfg-input" id="cfgCouponName" value="${cfgModalData.name}" placeholder="新客专享">
         </div>
         <div class="cfg-row">
             <div class="cfg-field">
-                <div class="cfg-label">优惠金额（元�?/div>
+                <div class="cfg-label">优惠金额（元）</div>
                 <input type="number" class="cfg-input" id="cfgCouponAmount" value="${cfgModalData.amount}" min="0">
             </div>
             <div class="cfg-field">
-                <div class="cfg-label">满减门槛（元�?/div>
+                <div class="cfg-label">满减门槛（元）</div>
                 <input type="number" class="cfg-input" id="cfgCouponCondition" value="${cfgModalData.condition}" min="0">
             </div>
         </div>
@@ -970,15 +976,15 @@ function buildCouponFormHTML() {
             </div>
         </div>
         <div class="cfg-field">
-            <div class="cfg-label">描述（如：满200�?0�?/div>
-            <input type="text" class="cfg-input" id="cfgCouponDesc" value="${cfgModalData.desc}" placeholder="�?00�?0">
+            <div class="cfg-label">描述（如：满200减30）</div>
+            <input type="text" class="cfg-input" id="cfgCouponDesc" value="${cfgModalData.desc}" placeholder="满200减30">
         </div>
     `;
 }
 
 async function deleteCoupon(index) {
     const c = configData.coupons[index];
-    if (!confirm(`确定删除优惠券�?{c.name}」吗？`)) return;
+    if (!confirm(`确定删除优惠券「${c.name}」吗？`)) return;
     try {
         const res = await fetch('/api/config', {
             method: 'POST', headers: getAuthHeaders(),
@@ -986,9 +992,9 @@ async function deleteCoupon(index) {
         });
         if (res.status === 401) { handleAuthExpired(); return; }
         const d = await res.json();
-        showToast(d.success ? '�?优惠券已删除' : '�?' + (d.message || '删除失败'));
+        showToast(d.success ? '✅ 优惠券已删除' : '❌ ' + (d.message || '删除失败'));
         if (d.success) loadConfig();
-    } catch(e) { showToast('�?网络错误'); }
+    } catch(e) { showToast('❌ 网络错误'); }
 }
 
 
@@ -1015,10 +1021,10 @@ async function saveCfgModal() {
         const features = document.getElementById('cfgRoomFeatures').value.trim();
 
         if (isNew) {
-            if (!room_id) { showToast('�?请输入房型ID'); return; }
-            if (!name) { showToast('�?请输入房型名�?); return; }
+            if (!room_id) { showToast('❌ 请输入房型ID'); return; }
+            if (!name) { showToast('❌ 请输入房型名称'); return; }
         } else {
-            if (!name) { showToast('�?请输入房型名�?); return; }
+            if (!name) { showToast('❌ 请输入房型名称'); return; }
         }
 
         const body = {
@@ -1031,9 +1037,9 @@ async function saveCfgModal() {
             const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
             if (res.status === 401) { handleAuthExpired(); closeCfgModal(); return; }
             const d = await res.json();
-            if (d.success) { showToast('�?房型已保�?); closeCfgModal(); loadConfig(); }
-            else { showToast('�?' + (d.message || '保存失败，可能房型ID已存�?)); }
-        } catch(e) { showToast('�?网络错误'); }
+            if (d.success) { showToast('✅ 房型已保存'); closeCfgModal(); loadConfig(); }
+            else { showToast('❌ ' + (d.message || '保存失败，可能房型ID已存在')); }
+        } catch(e) { showToast('❌ 网络错误'); }
     }
 
     if (cfgModalType === 'coupon') {
@@ -1045,8 +1051,8 @@ async function saveCfgModal() {
         const expire = parseInt(document.getElementById('cfgCouponExpire').value) || 7;
         const desc = document.getElementById('cfgCouponDesc').value.trim();
 
-        if (isNew && !coupon_id) { showToast('�?请输入优惠券ID'); return; }
-        if (!name) { showToast('�?请输入优惠券名称'); return; }
+        if (isNew && !coupon_id) { showToast('❌ 请输入优惠券ID'); return; }
+        if (!name) { showToast('❌ 请输入优惠券名称'); return; }
 
         const body = {
             action: 'update_coupon', coupon_id,
@@ -1059,9 +1065,9 @@ async function saveCfgModal() {
             const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
             if (res.status === 401) { handleAuthExpired(); closeCfgModal(); return; }
             const d = await res.json();
-            if (d.success) { showToast('�?优惠券已保存'); closeCfgModal(); loadConfig(); }
-            else { showToast('�?' + (d.message || '保存失败，可能优惠券ID已存�?)); }
-        } catch(e) { showToast('�?网络错误'); }
+            if (d.success) { showToast('✅ 优惠券已保存'); closeCfgModal(); loadConfig(); }
+            else { showToast('❌ ' + (d.message || '保存失败，可能优惠券ID已存在')); }
+        } catch(e) { showToast('❌ 网络错误'); }
     }
 }
 </script>

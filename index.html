@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>香江国际酒店 - 微信预订</title>
-    <meta name="description" content="赣州章贡区精品商务酒店，¥279�?晚，0佣金直接预订，会员立�?>
+    <meta name="description" content="赣州章贡区精品商务酒店，¥279起/晚，0佣金直接预订，会员立减">
     <meta name="format-detection" content="telephone=no">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -76,7 +76,7 @@
         .room-stock.empty { color: #ff4d4f; }
         .room-book-btn { display: inline-block; margin-top: 6px; background: linear-gradient(135deg, #ff6b35, #ff8c42); color: #fff; font-size: 12px; padding: 5px 16px; border-radius: 14px; font-weight: 600; }
 
-        /* ===== 优惠�?===== */
+        /* ===== 优惠券 ===== */
         .coupon-wrap { background: linear-gradient(135deg, #fff5eb, #fff); border: 1.5px dashed #ffa940; border-radius: 12px; margin: 12px 16px 16px; padding: 14px; }
         .coupon-title { font-size: 14px; font-weight: 600; color: #d46b08; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
         .coupon-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
@@ -183,7 +183,7 @@
         .share-card-price small { font-size: 14px; }
         .share-card-tagline { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; }
         .share-card-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #ff6b35, #ff8c42); color: #fff; font-size: 10px; padding: 3px 8px; border-radius: 8px; font-weight: 600; }
-        /* 优惠券分享卡�?*/
+        /* 优惠券分享卡片 */
         .share-card.coupon-style { background: linear-gradient(135deg, #fff5eb, #ffe8d6); color: #333; }
         .share-card.coupon-style .share-card-hotel { color: #d46b08; }
         .share-card.coupon-style .share-card-price { color: #ff6b35; }
@@ -201,7 +201,7 @@
         /* 复制成功提示 */
         .share-copy-tip { text-align: center; font-size: 13px; color: #52c41a; display: none; padding: 8px; background: #f6ffed; border-radius: 8px; }
         .share-copy-tip.show { display: block; }
-        /* 优惠券区域内的分享按�?*/
+        /* 优惠券区域内的分享按钮 */
         .coupon-share-btn { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: #fa8c16; cursor: pointer; border: none; background: none; padding: 2px 6px; border-radius: 8px; transition: background 0.15s; }
         .coupon-share-btn:active { background: #fff7e6; }
     </style>
@@ -219,22 +219,22 @@
     <div class="hotel-card">
         <h1 class="hotel-name" id="hotelName">香江国际酒店</h1>
         <div class="hotel-rating">
-            <span class="stars">★★★★�?/span>
+            <span class="stars">★★★★★</span>
             <span class="score" id="hotelScore">4.8</span>
-            <span class="review-count" id="reviewCount">328条评�?/span>
+            <span class="review-count" id="reviewCount">328条评价</span>
         </div>
         <div class="hotel-tags" id="hotelTags"></div>
         <div class="hotel-meta">
-            <span class="address" id="hotelAddr">📍 赣州市章贡区长冈�?3号达芬奇国际中心9�?/span>
+            <span class="address" id="hotelAddr">📍 赣州市章贡区长冈路13号达芬奇国际中心9栋</span>
             <a href="tel:057112345678" style="color:#1890ff;">📞 联系酒店</a>
         </div>
     </div>
 
     <!-- ===== 价格横幅 ===== -->
     <div class="price-banner">
-        <div class="label">今日特惠 · 官方直订�?5%</div>
-        <div class="value"><small>¥</small><span id="minPrice">279</span><span class="unit">�?�?/span></div>
-        <div class="note">同房型OTA价格 ¥338+，立�?0+�?�?/div>
+        <div class="label">今日特惠 · 官方直订省15%</div>
+        <div class="value"><small>¥</small><span id="minPrice">279</span><span class="unit">起/晚</span></div>
+        <div class="note">同房型OTA价格 ¥338+，立省50+元/晚</div>
     </div>
 
     <!-- ===== 粘性预订栏 ===== -->
@@ -242,24 +242,24 @@
         <div class="date-range">
             <div class="date-item" onclick="openDateModal('checkin')">
                 <div class="date-label">入住</div>
-                <div class="date-val" id="checkinVal">--�?-�?/div>
+                <div class="date-val" id="checkinVal">--月--日</div>
             </div>
-            <div class="date-sep">�?/div>
+            <div class="date-sep">→</div>
             <div class="date-item" onclick="openDateModal('checkout')">
                 <div class="date-label">离店</div>
-                <div class="date-val" id="checkoutVal">--�?-�?/div>
+                <div class="date-val" id="checkoutVal">--月--日</div>
             </div>
         </div>
-        <button class="book-btn" onclick="scrollToRooms()">查房�?/button>
+        <button class="book-btn" onclick="scrollToRooms()">查房型</button>
     </div>
 
-    <!-- ===== 优惠�?===== -->
+    <!-- ===== 优惠券 ===== -->
     <div class="coupon-wrap">
         <div class="coupon-title">
-            <span>🎫 领券更优�?/span>
+            <span>🎫 领券更优惠</span>
             <span style="display:flex;align-items:center;gap:8px;">
                 <button class="coupon-share-btn" onclick="openSharePanel('coupon')">📤 分享领券</button>
-                <span style="font-size:12px;color:#fa8c16;cursor:pointer;">规则说明 �?/span>
+                <span style="font-size:12px;color:#fa8c16;cursor:pointer;">规则说明 →</span>
             </span>
         </div>
         <div class="coupon-list" id="couponList"></div>
@@ -267,7 +267,7 @@
 
     <!-- ===== 房型列表 ===== -->
     <div class="section" id="roomSection">
-        <div class="section-header">🛏�?选择房型</div>
+        <div class="section-header">🛏️ 选择房型</div>
         <div id="roomList"></div>
     </div>
 
@@ -290,25 +290,25 @@
             <div class="info-icon">📞</div>
             <div class="info-content">
                 <div class="info-title">电话 / 微信同号</div>
-                <div class="info-desc">0571-12345678�?4小时在线�?/div>
+                <div class="info-desc">0571-12345678（24小时在线）</div>
             </div>
-            <div class="info-arrow">�?/div>
+            <div class="info-arrow">›</div>
         </a>
-        <a class="info-item" href="https://maps.apple.com/?q=赣州市章贡区长冈�?3号达芬奇国际中心9�?>
+        <a class="info-item" href="https://maps.apple.com/?q=赣州市章贡区长冈路13号达芬奇国际中心9栋">
             <div class="info-icon">📍</div>
             <div class="info-content">
                 <div class="info-title">地址</div>
-                <div class="info-desc">赣州市章贡区长冈�?3号达芬奇国际中心9栋（近博物馆�?/div>
+                <div class="info-desc">赣州市章贡区长冈路13号达芬奇国际中心9栋（近博物馆）</div>
             </div>
-            <div class="info-arrow">�?/div>
+            <div class="info-arrow">›</div>
         </a>
         <div class="info-item">
-            <div class="info-icon">�?/div>
+            <div class="info-icon">⏰</div>
             <div class="info-content">
                 <div class="info-title">入离时间</div>
-                <div class="info-desc">入住 14:00 �?· 离店 12:00 �?· 停车场免�?/div>
+                <div class="info-desc">入住 14:00 后 · 离店 12:00 前 · 停车场免费</div>
             </div>
-            <div class="info-arrow">�?/div>
+            <div class="info-arrow">›</div>
         </div>
     </div>
 
@@ -320,7 +320,7 @@
             <span class="tab-icon">🏨</span>首页
         </div>
         <div class="tab-item" onclick="scrollToRooms()">
-            <span class="tab-icon">🛏�?/span>房型
+            <span class="tab-icon">🛏️</span>房型
         </div>
         <div class="tab-item" onclick="document.querySelector('.review-list')?.scrollIntoView({behavior:'smooth'})">
             <span class="tab-icon">💬</span>评价
@@ -339,7 +339,7 @@
                 <div class="modal-close" onclick="closeBookingModal()">×</div>
             </div>
             <div class="modal-body">
-                <!-- 已选房型展�?-->
+                <!-- 已选房型展示 -->
                 <div class="order-summary" id="roomSummary" style="display:none;">
                     <div style="font-size:14px;font-weight:600;margin-bottom:8px;" id="summaryRoomName"></div>
                     <div id="summaryNights" style="font-size:12px;color:#888;margin-bottom:6px;"></div>
@@ -357,15 +357,15 @@
 
                 <!-- 联系信息 -->
                 <div class="form-group">
-                    <label class="form-label">👤 入住人姓�?<span style="color:#ff4d4f">*</span></label>
+                    <label class="form-label">👤 入住人姓名 <span style="color:#ff4d4f">*</span></label>
                     <input type="text" class="form-input" id="guestName" placeholder="请输入真实姓名（与入住证件一致）">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">📱 手机�?<span style="color:#ff4d4f">*</span></label>
+                    <label class="form-label">📱 手机号 <span style="color:#ff4d4f">*</span></label>
                     <input type="tel" class="form-input" id="guestPhone" placeholder="用于接收订单确认通知" maxlength="11">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">💬 备注（选填�?/label>
+                    <label class="form-label">💬 备注（选填）</label>
                     <input type="text" class="form-input" id="guestNote" placeholder="如：高楼层、无烟房、提前入住等">
                 </div>
 
@@ -380,10 +380,10 @@
                 <div class="pay-section">
                     <div style="font-size:13px;color:#666;margin-bottom:4px;">📱 微信扫码支付</div>
                     <div class="pay-qrcode">
-                        <img src="./assets/wechat-pay.png" alt="微信收款�? onerror="this.parentElement.innerHTML='<div style=display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#999;>微信收款�?/div>'">
+                        <img src="./assets/wechat-pay.png" alt="微信收款码" onerror="this.parentElement.innerHTML='<div style=display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:#999;>微信收款码</div>'">
                     </div>
-                    <p class="pay-tip">支付成功后点击下方按钮提交订�?/p>
-                    <button class="pay-btn" onclick="submitOrder()">�?我已付款，提交订�?/button>
+                    <p class="pay-tip">支付成功后点击下方按钮提交订单</p>
+                    <button class="pay-btn" onclick="submitOrder()">✅ 我已付款，提交订单</button>
                 </div>
             </div>
         </div>
@@ -414,12 +414,12 @@
     <div class="share-overlay" id="shareOverlay" onclick="if(event.target===this)closeSharePanel()">
         <div class="share-panel">
             <div class="share-panel-handle"></div>
-            <div class="share-panel-title" id="sharePanelTitle">分享给好�?/div>
+            <div class="share-panel-title" id="sharePanelTitle">分享给好友</div>
             <!-- 分享卡片预览 -->
             <div class="share-card" id="shareCardPreview">
                 <span class="share-card-badge" id="shareCardBadge">官方直营</span>
                 <div class="share-card-hotel" id="shareCardHotel">香江国际酒店</div>
-                <div class="share-card-price" id="shareCardPrice"><small>¥</small>279<span style="font-size:13px;color:rgba(255,255,255,0.6)"> �?�?/span></div>
+                <div class="share-card-price" id="shareCardPrice"><small>¥</small>279<span style="font-size:13px;color:rgba(255,255,255,0.6)"> 起/晚</span></div>
                 <div class="share-card-tagline" id="shareCardTagline">0佣金预订 · 微信扫码立减</div>
             </div>
             <!-- 分享操作 -->
@@ -433,19 +433,20 @@
                     <span class="share-action-text">复制链接</span>
                 </div>
                 <div class="share-action-btn" onclick="shareToMoments()">
-                    <div class="share-action-icon moments">�?/div>
-                    <span class="share-action-text">朋友�?/span>
+                    <div class="share-action-icon moments">⭕</div>
+                    <span class="share-action-text">朋友圈</span>
                 </div>
             </div>
-            <div class="share-copy-tip" id="shareCopyTip">�?链接已复制，快去发给朋友吧！</div>
+            <div class="share-copy-tip" id="shareCopyTip">✅ 链接已复制，快去发给朋友吧！</div>
         </div>
     </div>
 
     <script>
         // ========== 酒店配置数据 ==========
-        // 默认硬编码配置（API 不可用时 fallback�?        const DEFAULT_HOTEL = {
+        // 默认硬编码配置（API 不可用时 fallback）
+        const DEFAULT_HOTEL = {
             name: '香江国际酒店',
-            address: '赣州市章贡区长冈�?3号达芬奇国际中心9�?,
+            address: '赣州市章贡区长冈路13号达芬奇国际中心9栋',
             phone: '057112345678',
             rating: 4.8,
             reviewCount: 328,
@@ -453,8 +454,8 @@
                 { text: '官方直营', type: 'orange' },
                 { text: '近博物馆', type: '' },
                 { text: '免费停车', type: '' },
-                { text: '含早�?, type: '' },
-                { text: '新装�?, type: '' }
+                { text: '含早餐', type: '' },
+                { text: '新装修', type: '' }
             ],
             photos: [
                 'assets/photo-grid-1.jpg',
@@ -464,26 +465,27 @@
                 'assets/photo-grid-5.jpg'
             ],
             rooms: [
-                { id: 'standard', name: '标准双床�?, price: 279, features: ['30m²', '双床1.2m', '免费WiFi', '含早'], stock: 8 },
-                { id: 'king', name: '豪华大床�?, price: 328, features: ['28m²', '大床1.8m', '免费WiFi', '含早'], stock: 5 },
+                { id: 'standard', name: '标准双床房', price: 279, features: ['30m²', '双床1.2m', '免费WiFi', '含早'], stock: 8 },
+                { id: 'king', name: '豪华大床房', price: 328, features: ['28m²', '大床1.8m', '免费WiFi', '含早'], stock: 5 },
                 { id: 'suite', name: '行政套房', price: 588, features: ['45m²', '大床2.0m', '客厅', '含早'], stock: 2 }
             ],
             reviews: [
-                { name: '�?*', avatar: '�?, stars: 5, text: '位置很好，去博物馆走路就到。房间干净，前台态度好。比携程便宜，下次还来！', date: '2026-05-10', tags: ['位置�?, '干净'] },
-                { name: '�?�?, avatar: '�?, stars: 5, text: '第二次住了，免费停车超赞。房间大，床很舒服。强烈推荐大床房�?, date: '2026-05-08', tags: ['停车方便', '床舒�?] },
-                { name: '王女�?, avatar: '�?, stars: 4, text: '整体不错，早餐能接受。下次来赣州还住这里，直接订方便�?, date: '2026-05-03', tags: ['早餐不错'] },
-                { name: '陈先�?, avatar: '�?, stars: 5, text: '出差住的，离博物馆很近。老板人好帮忙拿行李。以后来赣州就这家了�?, date: '2026-04-28', tags: ['交通方�?, '服务�?] }
+                { name: '张**', avatar: '张', stars: 5, text: '位置很好，去博物馆走路就到。房间干净，前台态度好。比携程便宜，下次还来！', date: '2026-05-10', tags: ['位置好', '干净'] },
+                { name: '李*明', avatar: '李', stars: 5, text: '第二次住了，免费停车超赞。房间大，床很舒服。强烈推荐大床房！', date: '2026-05-08', tags: ['停车方便', '床舒服'] },
+                { name: '王女士', avatar: '王', stars: 4, text: '整体不错，早餐能接受。下次来赣州还住这里，直接订方便。', date: '2026-05-03', tags: ['早餐不错'] },
+                { name: '陈先生', avatar: '陈', stars: 5, text: '出差住的，离博物馆很近。老板人好帮忙拿行李。以后来赣州就这家了。', date: '2026-04-28', tags: ['交通方便', '服务好'] }
             ],
             coupons: [
-                { id: 'new', name: '新客专享', amount: 30, condition: 200, desc: '�?00�?0', expire: 7 },
-                { id: 'share', name: '分享立减', amount: 50, condition: 300, desc: '�?00�?0', expire: 7 },
-                { id: 'return', name: '回头�?, amount: 40, condition: 250, desc: '�?50�?0', expire: 14 }
+                { id: 'new', name: '新客专享', amount: 30, condition: 200, desc: '满200减30', expire: 7 },
+                { id: 'share', name: '分享立减', amount: 50, condition: 300, desc: '满300减50', expire: 7 },
+                { id: 'return', name: '回头客', amount: 40, condition: 250, desc: '满250减40', expire: 14 }
             ]
         };
 
-        // 运行�?HOTEL 对象（会�?API 数据覆盖�?        let HOTEL = { ...DEFAULT_HOTEL };
+        // 运行时 HOTEL 对象（会被 API 数据覆盖）
+        let HOTEL = { ...DEFAULT_HOTEL };
 
-        // ========== �?D1 加载配置 ==========
+        // ========== 从 D1 加载配置 ==========
         async function loadHotelConfig() {
             try {
                 const res = await fetch('/api/config');
@@ -517,16 +519,18 @@
             } catch(e) {}
         }
 
-        // ========== 全局状�?==========
+        // ========== 全局状态 ==========
         let selectedRoom = null;
         let selectedCheckin = null;
         let selectedCheckout = null;
-        let claimedCoupons = []; // 已领取的优惠券对象数�?[{id, name, amount, condition, expireAt, used, source, dbId}]
-        let claimPhone = ''; // 领券用的手机号（本地缓存�?        let currentSlide = 0;
-        let roomAvailability = {}; // 从后端获取真实房�?
-        // ========== 初始�?==========
+        let claimedCoupons = []; // 已领取的优惠券对象数组 [{id, name, amount, condition, expireAt, used, source, dbId}]
+        let claimPhone = ''; // 领券用的手机号（本地缓存）
+        let currentSlide = 0;
+        let roomAvailability = {}; // 从后端获取真实房态
+
+        // ========== 初始化 ==========
         document.addEventListener('DOMContentLoaded', async () => {
-            // 先加�?API 配置，再渲染页面
+            // 先加载 API 配置，再渲染页面
             await loadHotelConfig();
             initDates();
             renderHotelInfo();
@@ -536,7 +540,7 @@
             renderCoupons();
             startAutoSlide();
             fetchRoomAvailability();
-            // 检测分享裂变参�??ref=推荐人手机号
+            // 检测分享裂变参数 ?ref=推荐人手机号
             const urlParams = new URLSearchParams(window.location.search);
             const refPhone = urlParams.get('ref');
             if (refPhone) {
@@ -572,7 +576,7 @@
             HOTEL.rooms.forEach(room => {
                 const stock = roomAvailability[room.id] ?? room.stock;
                 const stockClass = stock === 0 ? 'empty' : stock <= 2 ? 'low' : 'ok';
-                const stockText = stock === 0 ? '已满�? : `仅剩 ${stock} 间`;
+                const stockText = stock === 0 ? '已满房' : `仅剩 ${stock} 间`;
                 const bookable = stock > 0;
                 
                 const card = document.createElement('div');
@@ -586,7 +590,7 @@
                         </div>
                         <div class="room-right">
                             <div class="room-price"><small>¥</small>${room.price}</div>
-                            <div class="room-price-unit">/�?/div>
+                            <div class="room-price-unit">/晚</div>
                         </div>
                     </div>
                     <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -603,7 +607,8 @@
             
             HOTEL.coupons.forEach(c => {
                 const item = document.createElement('div');
-                // 检查该类型券是否有可用的（未使用的�?                const available = claimedCoupons.find(cc => cc.id === c.id && !cc.used);
+                // 检查该类型券是否有可用的（未使用的）
+                const available = claimedCoupons.find(cc => cc.id === c.id && !cc.used);
                 const usedAll = claimedCoupons.some(cc => cc.id === c.id && cc.used);
                 const hasAny = claimedCoupons.some(cc => cc.id === c.id);
 
@@ -611,16 +616,17 @@
                 let btnText = '领取';
                 if (available) {
                     stateClass = ' claimed';
-                    btnText = '已领�?;
+                    btnText = '已领取';
                 } else if (usedAll && !available) {
                     stateClass = ' claimed';
-                    btnText = '已使�?;
+                    btnText = '已使用';
                 }
 
                 item.className = `coupon-item${stateClass}`;
                 item.id = `coupon-${c.id}`;
 
-                // 分享券额外显示裂变说�?                const extraHint = (c.id === 'share' && hasAny) ? '<div class="coupon-expire">分享给朋友，朋友领券可再�?�?/div>' : '';
+                // 分享券额外显示裂变说明
+                const extraHint = (c.id === 'share' && hasAny) ? '<div class="coupon-expire">分享给朋友，朋友领券可再得1张</div>' : '';
 
                 item.innerHTML = `
                     <div class="coupon-amount"><small>¥</small>${c.amount}</div>
@@ -666,7 +672,7 @@
                     <div class="review-header">
                         <div class="review-avatar">${r.avatar}</div>
                         <div class="review-name">${r.name}</div>
-                        <div class="review-stars">${'�?.repeat(r.stars)}${'�?.repeat(5-r.stars)}</div>
+                        <div class="review-stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
                     </div>
                     <div class="review-text">${r.text}</div>
                     <div class="review-date">${r.date}</div>
@@ -735,12 +741,12 @@
 
         function formatDisplay(dateStr) {
             const d = new Date(dateStr);
-            return `${d.getMonth()+1}�?{d.getDate()}日`;
+            return `${d.getMonth()+1}月${d.getDate()}日`;
         }
 
         function updateDateDisplay() {
-            document.getElementById('checkinVal').textContent = selectedCheckin ? formatDisplay(selectedCheckin) : '--�?-�?;
-            document.getElementById('checkoutVal').textContent = selectedCheckout ? formatDisplay(selectedCheckout) : '--�?-�?;
+            document.getElementById('checkinVal').textContent = selectedCheckin ? formatDisplay(selectedCheckin) : '--月--日';
+            document.getElementById('checkoutVal').textContent = selectedCheckout ? formatDisplay(selectedCheckout) : '--月--日';
         }
 
         function openDateModal(type) {
@@ -838,7 +844,8 @@
             let total = selectedRoom.price * nights;
             document.getElementById('sumRoomFee').textContent = `¥${total}`;
             
-            // 最优优惠券（只�?张可用且金额最大的�?            let bestDiscount = 0;
+            // 最优优惠券（只选1张可用且金额最大的）
+            let bestDiscount = 0;
             let bestCoupon = null;
             claimedCoupons.forEach(cc => {
                 if (cc.used) return; // 跳过已使用的
@@ -862,7 +869,7 @@
             selectedRoom._nights = nights;
         }
 
-        // ========== 优惠�?==========
+        // ========== 优惠券 ==========
         async function loadClaimedCoupons(phone) {
             try {
                 const res = await fetch(`/api/coupon?phone=${encodeURIComponent(phone)}`);
@@ -887,7 +894,7 @@
             }
             phone = phone.replace(/\s/g, '');
             if (!/^1[3-9]\d{9}$/.test(phone)) {
-                showToast('�?手机号格式不正确');
+                showToast('❌ 手机号格式不正确');
                 return;
             }
 
@@ -895,8 +902,10 @@
             const coupon = HOTEL.coupons.find(c => c.id === couponId);
             let referrerPhone = '';
             if (couponId === 'share' && claimedCoupons.some(cc => cc.id === 'share')) {
-                // 已经领过分享券，这次是裂变领�?                // 优先�?sessionStorage 获取（通过分享链接 ?ref= 带入�?                referrerPhone = sessionStorage.getItem('referrerPhone') || '';
-                // 也尝�?URL 参数兜底
+                // 已经领过分享券，这次是裂变领取
+                // 优先从 sessionStorage 获取（通过分享链接 ?ref= 带入）
+                referrerPhone = sessionStorage.getItem('referrerPhone') || '';
+                // 也尝试 URL 参数兜底
                 if (!referrerPhone) {
                     const urlParams = new URLSearchParams(window.location.search);
                     referrerPhone = urlParams.get('ref') || '';
@@ -922,9 +931,11 @@
                 if (data.success) {
                     claimPhone = phone;
                     localStorage.setItem('claimPhone', phone);
-                    // 刷新优惠券列�?                    await loadClaimedCoupons(phone);
+                    // 刷新优惠券列表
+                    await loadClaimedCoupons(phone);
                     showToast('🎫 优惠券已领取');
-                    // 如果有裂变奖�?                    if (data.reward) {
+                    // 如果有裂变奖励
+                    if (data.reward) {
                         setTimeout(() => showToast('🎉 分享奖励：推荐人获得1张分享券'), 1500);
                     }
                 } else {
@@ -932,17 +943,17 @@
                         claimPhone = phone;
                         localStorage.setItem('claimPhone', phone);
                         await loadClaimedCoupons(phone);
-                        showToast(data.used ? '该优惠券已使�? : '你已经有一张未使用的了');
+                        showToast(data.used ? '该优惠券已使用' : '你已经有一张未使用的了');
                     } else {
-                        showToast('�?' + (data.message || '领取失败'));
+                        showToast('❌ ' + (data.message || '领取失败'));
                     }
                 }
             } catch(e) {
-                showToast('�?网络错误，请重试');
+                showToast('❌ 网络错误，请重试');
             }
         }
 
-        // ========== 房态获�?==========
+        // ========== 房态获取 ==========
         async function fetchRoomAvailability() {
             try {
                 const today = formatDate(new Date());
@@ -953,19 +964,21 @@
                     renderRooms();
                 }
             } catch(e) {
-                // API 不可用，�?HOTEL 配置中的默认库存
+                // API 不可用，用 HOTEL 配置中的默认库存
                 HOTEL.rooms.forEach(r => { roomAvailability[r.id] = r.stock; });
                 renderRooms();
             }
         }
 
         function computeAvailability(orders) {
-            // 从当�?HOTEL 配置获取总库存（已从 API 加载�?            const stockConfig = {};
+            // 从当前 HOTEL 配置获取总库存（已从 API 加载）
+            const stockConfig = {};
             HOTEL.rooms.forEach(r => { stockConfig[r.id] = r.stock; });
             const roomNameMap = {};
             HOTEL.rooms.forEach(r => { roomNameMap[r.name] = r.id; });
             
-            // 统计当前已确认占�?            const occupied = {};
+            // 统计当前已确认占用
+            const occupied = {};
             HOTEL.rooms.forEach(r => { occupied[r.id] = 0; });
             const today = formatDate(new Date());
             
@@ -977,7 +990,8 @@
                 const co = new Date(o.checkout);
                 const now = new Date(today);
                 
-                // 如果今晚会住这里（入住日期≤今天<离店日期�?                if (ci <= now && now < co) {
+                // 如果今晚会住这里（入住日期≤今天<离店日期）
+                if (ci <= now && now < co) {
                     occupied[key]++;
                 }
             });
@@ -1006,7 +1020,7 @@
             const nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000*60*60*24));
             let total = selectedRoom.price * nights;
             
-            // 选最�?张可用优惠券
+            // 选最优1张可用优惠券
             let usedCouponId = null;
             let couponDiscount = 0;
             claimedCoupons.forEach(cc => {
@@ -1044,25 +1058,29 @@
                 const result = await res.json();
                 
                 if (result.success) {
-                    showToast('�?订单已提交！商家将尽快确�?);
-                    // 同步领券手机�?                    claimPhone = guestPhone;
+                    showToast('✅ 订单已提交！商家将尽快确认');
+                    // 同步领券手机号
+                    claimPhone = guestPhone;
                     localStorage.setItem('claimPhone', guestPhone);
-                    // 标记优惠券已使用（后�?+ 本地�?                    if (usedCouponId) {
+                    // 标记优惠券已使用（后端 + 本地）
+                    if (usedCouponId) {
                         fetch('/api/coupon', {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ phone: guestPhone, couponId: usedCouponId, orderId: result.orderId || '' })
                         }).catch(e => console.error('Mark coupon used error:', e));
-                        // 本地也更新状�?                        const cc = claimedCoupons.find(c => c.id === usedCouponId && !c.used);
+                        // 本地也更新状态
+                        const cc = claimedCoupons.find(c => c.id === usedCouponId && !c.used);
                         if (cc) cc.used = true;
                     }
                     closeBookingModal();
-                    // 刷新房�?                    setTimeout(fetchRoomAvailability, 2000);
+                    // 刷新房态
+                    setTimeout(fetchRoomAvailability, 2000);
                 } else {
-                    showToast('�?' + (result.message || '提交失败'));
+                    showToast('❌ ' + (result.message || '提交失败'));
                 }
             } catch(e) {
-                showToast('�?订单已提交！商家将确�?);
+                showToast('✅ 订单已提交！商家将确认');
                 closeBookingModal();
             }
         }
@@ -1094,19 +1112,20 @@
             const title = document.getElementById('sharePanelTitle');
 
             if (type === 'coupon') {
-                // 分享优惠券卡片样�?                card.className = 'share-card coupon-style';
-                title.textContent = '分享领券给朋�?;
-                badge.textContent = '优惠�?;
+                // 分享优惠券卡片样式
+                card.className = 'share-card coupon-style';
+                title.textContent = '分享领券给朋友';
+                badge.textContent = '优惠券';
                 hotel.textContent = HOTEL.name + ' · 领券立减';
-                price.innerHTML = '<small>¥</small>50<span style="font-size:13px;color:#ff6b35"> 最高优�?/span>';
-                tagline.textContent = '朋友领券后你也能获得1张分享券�?;
+                price.innerHTML = '<small>¥</small>50<span style="font-size:13px;color:#ff6b35"> 最高优惠</span>';
+                tagline.textContent = '朋友领券后你也能获得1张分享券！';
             } else {
                 // 分享酒店页面卡片样式
                 card.className = 'share-card';
-                title.textContent = '分享给好�?;
+                title.textContent = '分享给好友';
                 badge.textContent = '官方直营';
                 hotel.textContent = HOTEL.name;
-                price.innerHTML = '<small>¥</small>' + Math.min(...HOTEL.rooms.map(r => r.price)) + '<span style="font-size:13px;color:rgba(255,255,255,0.6)"> �?�?/span>';
+                price.innerHTML = '<small>¥</small>' + Math.min(...HOTEL.rooms.map(r => r.price)) + '<span style="font-size:13px;color:rgba(255,255,255,0.6)"> 起/晚</span>';
                 tagline.textContent = '0佣金预订 · 微信扫码立省15%';
             }
 
@@ -1153,31 +1172,33 @@
             setTimeout(() => tip.classList.remove('show'), 2500);
         }
 
-        /** 微信好友分享（调起微信或提示�?*/
+        /** 微信好友分享（调起微信或提示） */
         function shareToWechat() {
             const link = getShareLink();
             const text = currentShareType === 'coupon'
-                ? `我在${HOTEL.name}领了优惠券，最高减¥50！你也来领一张吧�?{link}`
-                : `${HOTEL.name}官方直订，比OTA便宜15%！�?{Math.min(...HOTEL.rooms.map(r=>r.price))}�?晚，0佣金�?{link}`;
+                ? `我在${HOTEL.name}领了优惠券，最高减¥50！你也来领一张吧：${link}`
+                : `${HOTEL.name}官方直订，比OTA便宜15%！¥${Math.min(...HOTEL.rooms.map(r=>r.price))}起/晚，0佣金：${link}`;
             
-            // 尝试调用 Web Share API（微信内置浏览器支持�?            if (navigator.share) {
+            // 尝试调用 Web Share API（微信内置浏览器支持）
+            if (navigator.share) {
                 navigator.share({
                     title: currentShareType === 'coupon' ? `${HOTEL.name}·领券立减` : HOTEL.name,
                     text: text,
                     url: link
                 }).catch(() => { /* 用户取消 */ });
             } else {
-                // 不支持则复制链接并提�?                copyShareLink();
+                // 不支持则复制链接并提示
+                copyShareLink();
                 showToast('已复制链接，请打开微信发送给好友');
             }
         }
 
-        /** 朋友圈分�?*/
+        /** 朋友圈分享 */
         function shareToMoments() {
             const link = getShareLink();
             const tip = currentShareType === 'coupon'
-                ? `🎫 ${HOTEL.name}优惠券免费领\n�?00�?0 / �?00�?0 / �?50�?0\n扫码或点击领取：${link}`
-                : `🏨 ${HOTEL.name}\n💰 ¥${Math.min(...HOTEL.rooms.map(r=>r.price))}�?晚，比携程便�?5%\n�?官方直营 0佣金预订\n📍 ${HOTEL.address}\n${link}`;
+                ? `🎫 ${HOTEL.name}优惠券免费领\n满200减30 / 满300减50 / 满250减40\n扫码或点击领取：${link}`
+                : `🏨 ${HOTEL.name}\n💰 ¥${Math.min(...HOTEL.rooms.map(r=>r.price))}起/晚，比携程便宜15%\n✅ 官方直营 0佣金预订\n📍 ${HOTEL.address}\n${link}`;
             
             copyShareLink();
             showToast('已复制文案和链接，请打开微信发朋友圈');
@@ -1187,7 +1208,7 @@
         function showReferrerTip(refPhone) {
             const bar = document.createElement('div');
             bar.style.cssText = 'background:linear-gradient(135deg,#fff7e6,#ffe8d6);color:#d46b08;font-size:12px;padding:8px 16px;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;';
-            bar.innerHTML = '🎉 你的朋友邀请你来领券预订，优惠更多�?span style="color:#999;margin-left:4px;cursor:pointer;font-size:16px;line-height:1;" onclick="this.parentElement.remove()">×</span>';
+            bar.innerHTML = '🎉 你的朋友邀请你来领券预订，优惠更多！<span style="color:#999;margin-left:4px;cursor:pointer;font-size:16px;line-height:1;" onclick="this.parentElement.remove()">×</span>';
             document.body.insertBefore(bar, document.body.firstChild);
             // 5秒后自动消失
             setTimeout(() => { if (bar.parentElement) bar.style.opacity = '0'; setTimeout(()=>bar.remove(),300); }, 5000);
