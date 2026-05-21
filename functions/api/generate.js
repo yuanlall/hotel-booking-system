@@ -254,21 +254,20 @@ async function deployToPages(accountId, token, projectName, htmlContent) {
     );
   } catch(e) { /* ignore */ }
 
-  // 2. Upload via Direct Upload — CF requires a JSON manifest part + file parts
-  const manifest = JSON.stringify([{ fileName: "/index.html", content: htmlContent, contentType: "text/html; charset=utf-8" }]);
-  const manifestBlob = new Blob([manifest], { type: 'application/json' });
-
-  const formData = new FormData();
-  formData.append('manifest', manifestBlob, 'manifest.json');
-  const htmlBlob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
-  formData.append('index.html', htmlBlob, 'index.html');
-
+  // 2. Upload via Direct Upload — JSON body with base64-encoded content
+  const b64Content = Buffer.from(htmlContent, 'utf-8').toString('base64');
   const uploadResp = await fetch(
     'https://api.cloudflare.com/client/v4/accounts/' + accountId + '/pages/projects/' + projectName + '/deployments',
     {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token },
-      body: formData
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        manifest: [{
+          filePath: '/index.html',
+          content: b64Content,
+          type: 'data'  // 'data' means base64-encoded
+        }]
+      })
     }
   );
 
