@@ -255,7 +255,7 @@ async function deployToPages(accountId, token, projectName, htmlContent) {
   } catch(e) { /* ignore */ }
 
   // 2. Upload via Direct Upload — JSON body with base64-encoded content
-  const b64Content = Buffer.from(htmlContent, 'utf-8').toString('base64');
+  const b64Content = btoa(unescape(encodeURIComponent(htmlContent)));
   const uploadResp = await fetch(
     'https://api.cloudflare.com/client/v4/accounts/' + accountId + '/pages/projects/' + projectName + '/deployments',
     {
