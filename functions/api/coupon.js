@@ -1,5 +1,6 @@
-// ========== Cloudflare Pages Function: 优惠券管理 v2 ==========
+// ========== Cloudflare Pages Function: 优惠券管理 v2 (多租户版) ==========
 // v2 变更：去重限制改为按 coupon_id + source，分享券可裂变，用券时标记已使用+关联订单
+// 多租户：所有查询通过 hotel_id 隔离
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -19,9 +20,43 @@ function phoneValid(phone) {
   return /^1[3-9]\d{9}$/.test(phone);
 }
 
+// 从请求中解析 hotel_id
+async function resolveHotelId(env, request) {
+  const url = new URL(request.url);
+  let hotelId = url.searchParams.get('hotelId');
+
+  if (!hotelId) {
+    hotelId = request.headers.get('X-Hotel-Id');
+  }
+
+  if (!hotelId) {
+    const referer = request.headers.get('Referer') || '';
+    if (referer) {
+      try {
+        const refUrl = new URL(referer);
+        hotelId = refUrl.searchParams.get('hotelId');
+        if (!hotelId) {
+          const slug = refUrl.searchParams.get('hotel');
+          if (slug) {
+            const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE slug = ?').first();
+            if (hotel) hotelId = hotel.id;
+          }
+        }
+      } catch(e) {}
+    }
+  }
+
+  if (!hotelId) {
+    const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE active = 1 ORDER BY id ASC LIMIT 1').first();
+    return hotel ? hotel.id : 1;
+  }
+
+  const id = parseInt(hotelId);
+  return isNaN(id) ? 1 : id;
+}
+
 // POST /api/coupon — 领取优惠券
-// Body: { phone, couponId, couponName, amount, condition, expireDays, referrerPhone? }
-//   referrerPhone 仅分享券需要，用于裂变奖励推荐人
+// Body: { phone, couponId, couponName, amount, condition, expireDays, hotelId?, referrerPhone? }
 export async function onRequestPost(context) {
   const { request, env } = context;
   if (!env.DB) return jsonResponse({ success: false, message: '数据库不可用' }, 503);
@@ -34,11 +69,12 @@ export async function onRequestPost(context) {
     if (!clean || !couponId) return jsonResponse({ success: false, message: '缺少参数' }, 400);
     if (!phoneValid(clean)) return jsonResponse({ success: false, message: '手机号格式不正确' }, 400);
 
-    // ===== 普通券（new / return）：同手机号同 coupon_id 只能领1张 =====
-    // 通过检查是否已有未使用的同类型券
+    const hotelId = body.hotelId || await resolveHotelId(env, request);
+
+    // 检查是否已有未使用的同类型券（同酒店内）
     const existing = await env.DB.prepare(
-      'SELECT id, used, expire_at FROM coupon_claims WHERE phone = ? AND coupon_id = ? AND used = 0 AND expire_at > ?'
-    ).bind(clean, couponId, new Date().toISOString()).first();
+      'SELECT id, used, expire_at FROM coupon_claims WHERE hotel_id = ? AND phone = ? AND coupon_id = ? AND used = 0 AND expire_at > ?'
+    ).bind(hotelId, clean, couponId, new Date().toISOString()).first();
 
     if (existing) {
       return jsonResponse({ success: false, message: '你已经有一张未使用的该优惠券', alreadyClaimed: true });
@@ -49,9 +85,9 @@ export async function onRequestPost(context) {
     const expireAt = new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000).toISOString();
 
     await env.DB.prepare(
-      'INSERT INTO coupon_claims (phone, coupon_id, coupon_name, amount, condition_amount, expire_at, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO coupon_claims (hotel_id, phone, coupon_id, coupon_name, amount, condition_amount, expire_at, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     ).bind(
-      clean, couponId, body.couponName || '', body.amount || 0, body.condition || 0,
+      hotelId, clean, couponId, body.couponName || '', body.amount || 0, body.condition || 0,
       expireAt, 'self', new Date().toISOString()
     ).run();
 
@@ -64,18 +100,16 @@ export async function onRequestPost(context) {
       used: false
     };
 
-    // ===== 分享裂变：如果领的是分享券，且有推荐人手机号，奖励推荐人1张分享券 =====
+    // 分享裂变
     let rewardResult = null;
     if (couponId === 'share' && referrerPhone) {
       const refClean = cleanPhone(referrerPhone);
-      // 推荐人不能是自己
       if (refClean !== clean && phoneValid(refClean)) {
-        // 奖励推荐人1张分享券
         const rewardExpireAt = new Date(Date.now() + expireDays * 24 * 60 * 60 * 1000).toISOString();
         await env.DB.prepare(
-          'INSERT INTO coupon_claims (phone, coupon_id, coupon_name, amount, condition_amount, expire_at, source, referrer_of_phone, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          'INSERT INTO coupon_claims (hotel_id, phone, coupon_id, coupon_name, amount, condition_amount, expire_at, source, referrer_of_phone, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         ).bind(
-          refClean, 'share', '分享立减', 50, 300,
+          hotelId, refClean, 'share', '分享立减', 50, 300,
           rewardExpireAt, 'share_reward', clean, new Date().toISOString()
         ).run();
         rewardResult = { rewardPhone: refClean, rewardCoupon: 'share' };
@@ -90,8 +124,8 @@ export async function onRequestPost(context) {
   }
 }
 
-// PUT /api/coupon — 使用优惠券（订单提交时调用）
-// Body: { phone, couponId, orderId }
+// PUT /api/coupon — 使用优惠券
+// Body: { phone, couponId, orderId, hotelId? }
 export async function onRequestPut(context) {
   const { request, env } = context;
   if (!env.DB) return jsonResponse({ success: false, message: '数据库不可用' }, 503);
@@ -103,22 +137,19 @@ export async function onRequestPut(context) {
 
     if (!clean || !couponId || !orderId) return jsonResponse({ success: false, message: '缺少参数' }, 400);
 
-    // 找到该用户一张未使用、未过期的该优惠券
+    const hotelId = body.hotelId || await resolveHotelId(env, request);
+
     const coupon = await env.DB.prepare(
-      'SELECT id FROM coupon_claims WHERE phone = ? AND coupon_id = ? AND used = 0 AND expire_at > ?'
-    ).bind(clean, couponId, new Date().toISOString()).first();
+      'SELECT id FROM coupon_claims WHERE hotel_id = ? AND phone = ? AND coupon_id = ? AND used = 0 AND expire_at > ?'
+    ).bind(hotelId, clean, couponId, new Date().toISOString()).first();
 
     if (!coupon) {
       return jsonResponse({ success: false, message: '没有可用的优惠券' });
     }
 
-    // 标记为已使用，关联订单号
     await env.DB.prepare(
       'UPDATE coupon_claims SET used = 1, used_order_id = ?, used_at = ? WHERE id = ?'
     ).bind(orderId, new Date().toISOString(), coupon.id).run();
-
-    // 如果是分享券（被推荐人使用），检查推荐人是否还有分享奖励待发放
-    // （推荐人奖励在领取时就已发放，此处不需要额外操作）
 
     return jsonResponse({ success: true, message: '优惠券已使用' });
 
@@ -128,7 +159,7 @@ export async function onRequestPut(context) {
   }
 }
 
-// GET /api/coupon?phone=xxx — 查询可用优惠券（未使用+未过期）
+// GET /api/coupon?phone=xxx&hotelId=1 — 查询可用优惠券
 // GET /api/coupon?action=init — 初始化/升级表结构
 export async function onRequestGet(context) {
   const { env, request } = context;
@@ -141,30 +172,31 @@ export async function onRequestGet(context) {
   // 初始化表结构
   if (action === 'init') {
     try {
-      // v2 表：增加 source, referrer_of_phone, used_at 字段
       await env.DB.exec(
-        'CREATE TABLE IF NOT EXISTS coupon_claims (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT NOT NULL, coupon_id TEXT NOT NULL, coupon_name TEXT, amount INTEGER DEFAULT 0, condition_amount INTEGER DEFAULT 0, expire_at TEXT, used INTEGER DEFAULT 0, used_order_id TEXT, used_at TEXT, source TEXT DEFAULT \'self\', referrer_of_phone TEXT, created_at TEXT)'
+        'CREATE TABLE IF NOT EXISTS coupon_claims (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER NOT NULL DEFAULT 1, phone TEXT NOT NULL, coupon_id TEXT NOT NULL, coupon_name TEXT, amount INTEGER DEFAULT 0, condition_amount INTEGER DEFAULT 0, expire_at TEXT, used INTEGER DEFAULT 0, used_order_id TEXT, used_at TEXT, source TEXT DEFAULT \'self\', referrer_of_phone TEXT, created_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id))'
       );
-      // 为旧表补充新列（如果缺失）
+      // 为旧表补充新列
+      try { await env.DB.exec('ALTER TABLE coupon_claims ADD COLUMN hotel_id INTEGER NOT NULL DEFAULT 1'); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE coupon_claims ADD COLUMN source TEXT DEFAULT \'self\''); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE coupon_claims ADD COLUMN referrer_of_phone TEXT'); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE coupon_claims ADD COLUMN used_at TEXT'); } catch(e) {}
-      return jsonResponse({ success: true, message: 'coupon_claims v2 表已就绪' });
+      try { await env.DB.exec('CREATE INDEX IF NOT EXISTS idx_coupon_claims_hotel_id ON coupon_claims(hotel_id)'); } catch(e) {}
+      return jsonResponse({ success: true, message: 'coupon_claims v2 多租户表已就绪' });
     } catch (e) {
       return jsonResponse({ success: false, message: '建表失败: ' + e.message }, 500);
     }
   }
 
-  // 查询可用优惠券（未使用+未过期）
+  // 查询可用优惠券（未使用+未过期，按酒店隔离）
   if (phone) {
     try {
+      const hotelId = await resolveHotelId(env, request);
       const clean = cleanPhone(phone);
       const now = new Date().toISOString();
 
-      // 查未使用的
       const available = await env.DB.prepare(
-        'SELECT coupon_id, coupon_name, amount, condition_amount, expire_at, source, id FROM coupon_claims WHERE phone = ? AND used = 0 AND expire_at > ?'
-      ).bind(clean, now).all();
+        'SELECT coupon_id, coupon_name, amount, condition_amount, expire_at, source, id FROM coupon_claims WHERE hotel_id = ? AND phone = ? AND used = 0 AND expire_at > ?'
+      ).bind(hotelId, clean, now).all();
 
       const coupons = available.results.map(row => ({
         id: row.coupon_id,
@@ -177,10 +209,9 @@ export async function onRequestGet(context) {
         dbId: row.id
       }));
 
-      // 查已使用的（最近5条，用于展示历史）
       const used = await env.DB.prepare(
-        'SELECT coupon_id, coupon_name, amount, condition_amount, used_order_id, used_at FROM coupon_claims WHERE phone = ? AND used = 1 ORDER BY used_at DESC LIMIT 5'
-      ).bind(clean).all();
+        'SELECT coupon_id, coupon_name, amount, condition_amount, used_order_id, used_at FROM coupon_claims WHERE hotel_id = ? AND phone = ? AND used = 1 ORDER BY used_at DESC LIMIT 5'
+      ).bind(hotelId, clean).all();
 
       const usedCoupons = used.results.map(row => ({
         id: row.coupon_id,
@@ -190,7 +221,7 @@ export async function onRequestGet(context) {
         usedAt: row.used_at
       }));
 
-      return jsonResponse({ success: true, coupons, usedCoupons });
+      return jsonResponse({ success: true, coupons, usedCoupons, hotelId });
     } catch (e) {
       return jsonResponse({ success: false, message: '查询失败' }, 500);
     }

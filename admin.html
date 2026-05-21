@@ -254,6 +254,12 @@
         <div>
             <h1>🏨 酒店管理后台</h1>
             <p id="hotelNameHeader">实时订单管理 · 房态自动同步</p>
+            <!-- 酒店选择器 -->
+            <div id="hotelSelector" style="margin-top:8px;display:none">
+                <select id="hotelSelect" onchange="switchHotel(this.value)" style="padding:6px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:#fff;font-size:13px;outline:none;cursor:pointer;min-width:200px">
+                    <option value="">加载中...</option>
+                </select>
+            </div>
         </div>
         <button class="logout-btn" onclick="doLogout()">退出登录</button>
         <!-- Tab 导航 -->
@@ -522,8 +528,10 @@ function showMainApp() {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
     initDatePicker();
-    loadOrders();
-    loadConfig();
+    loadHotelList().then(() => {
+        loadOrders();
+        loadConfig();
+    });
     setInterval(loadOrders, 30000);
 }
 
@@ -554,6 +562,44 @@ function switchTab(tab) {
     if (tab === 'config') loadConfig();
 }
 
+
+// ============================================================
+//  🏨 多租户：酒店切换
+// ============================================================
+
+let currentAdminHotelId = null;
+
+async function loadHotelList() {
+    try {
+        const res = await fetch('/api/config?action=list_hotels', { headers: getAuthHeaders() });
+        const data = await res.json();
+        if (data.success && data.hotels && data.hotels.length > 1) {
+            const sel = document.getElementById('hotelSelect');
+            sel.innerHTML = '';
+            data.hotels.forEach(h => {
+                const opt = document.createElement('option');
+                opt.value = h.id;
+                opt.textContent = h.name + (h.active ? '' : ' (停用)');
+                sel.appendChild(opt);
+            });
+            document.getElementById('hotelSelector').style.display = 'block';
+            // 默认选第一个
+            currentAdminHotelId = data.hotels[0].id;
+        } else {
+            // 只有一个酒店，不需要切换
+            currentAdminHotelId = data.hotels && data.hotels[0] ? data.hotels[0].id : 1;
+        }
+    } catch(e) {
+        currentAdminHotelId = 1;
+    }
+}
+
+function switchHotel(hotelId) {
+    currentAdminHotelId = parseInt(hotelId);
+    // 重新加载配置和订单
+    loadConfig();
+    loadOrders();
+}
 
 // ============================================================
 //  📊 订单管理（Tab1）
@@ -616,7 +662,8 @@ function updateDateDisplay() {
 
 async function loadOrders() {
     try {
-        const res = await fetch('/api/order?action=list', { headers: getAuthHeaders() });
+        const hotelIdParam = currentAdminHotelId ? `&hotelId=${currentAdminHotelId}` : '';
+        const res = await fetch(`/api/order?action=list${hotelIdParam}`, { headers: getAuthHeaders() });
         if (res.status === 401) { handleAuthExpired(); return; }
         const data = await res.json();
         orders = (data.success && data.orders) ? data.orders : [];
@@ -756,7 +803,8 @@ let cfgModalData = {};        // 弹窗中的临时数据
 // 加载配置 → 填充表单
 async function loadConfig() {
     try {
-        const res = await fetch('/api/config');
+        const hotelParam = currentAdminHotelId ? `?hotelId=${currentAdminHotelId}` : '';
+        const res = await fetch(`/api/config${hotelParam}`);
         const data = await res.json();
         if (data.success && data.config) {
             configData = data.config;
@@ -786,6 +834,7 @@ function fillHotelForm(h) {
 async function saveHotelConfig() {
     const body = {
         action: 'update_hotel',
+        hotelId: currentAdminHotelId,
         name: document.getElementById('cfgHotelName').value.trim(),
         address: document.getElementById('cfgHotelAddress').value.trim(),
         phone: document.getElementById('cfgHotelPhone').value.trim(),
@@ -896,7 +945,7 @@ async function deleteRoom(index) {
     try {
         const res = await fetch('/api/config', {
             method: 'POST', headers: getAuthHeaders(),
-            body: JSON.stringify({ action: 'update_room', room_id: r.id, status: 'inactive' })
+            body: JSON.stringify({ action: 'update_room', hotelId: currentAdminHotelId, room_id: r.id, status: 'inactive' })
         });
         if (res.status === 401) { handleAuthExpired(); return; }
         const d = await res.json();
@@ -991,7 +1040,7 @@ async function deleteCoupon(index) {
     try {
         const res = await fetch('/api/config', {
             method: 'POST', headers: getAuthHeaders(),
-            body: JSON.stringify({ action: 'update_coupon', coupon_id: c.id, status: 'inactive' })
+            body: JSON.stringify({ action: 'update_coupon', hotelId: currentAdminHotelId, coupon_id: c.id, status: 'inactive' })
         });
         if (res.status === 401) { handleAuthExpired(); return; }
         const d = await res.json();
@@ -1031,7 +1080,7 @@ async function saveCfgModal() {
         }
 
         const body = {
-            action: 'update_room', room_id,
+            action: 'update_room', hotelId: currentAdminHotelId, room_id,
             name, price, area, bed_type: bedType, features,
             total_stock: stock, status: 'active'
         };
@@ -1058,7 +1107,7 @@ async function saveCfgModal() {
         if (!name) { showToast('❌ 请输入优惠券名称'); return; }
 
         const body = {
-            action: 'update_coupon', coupon_id,
+            action: 'update_coupon', hotelId: currentAdminHotelId, coupon_id,
             name, amount, condition_amount: condition,
             expire_days: expire, description: desc,
             status: 'active'

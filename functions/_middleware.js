@@ -10,7 +10,7 @@ const PUBLIC_PATHS = [
 const PROTECTED_ACTIONS = {
   '/api/order': { GET: ['list'], POST: ['updateStatus'] },
   '/api/coupon': { GET: ['init'] },
-  '/api/config': { POST: ['update_hotel', 'update_room', 'update_coupon'] }
+  '/api/config': { POST: ['update_hotel', 'update_room', 'update_coupon', 'create_hotel'] }
 };
 
 // ========== 鉴权核心逻辑（内联，因为 Pages Function 不支持跨文件 import） ==========

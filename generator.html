@@ -418,6 +418,12 @@
         generatedHTML = result.html;
         log('✅ 生成成功！', 'ok');
 
+        // 保存酒店信息
+        if (result.slug) {
+          log(`酒店标识: ${result.slug}`, 'info');
+          log(`预订链接: ${result.bookingLink}`, 'info');
+        }
+
         // Show preview in iframe
         document.getElementById('genForm').style.display = 'none';
         document.getElementById('resultSection').classList.add('show');

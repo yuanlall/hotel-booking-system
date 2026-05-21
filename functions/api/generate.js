@@ -240,7 +240,13 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
 </html>`;
 }
 
+// 生成 URL-safe slug
+function generateSlug(name) {
+  return name.replace(/[^\w\u4e00-\u9fff]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase().slice(0, 40);
+}
+
 export async function onRequestPost(context) {
+  const { env } = context;
   try {
     const body = await context.request.json();
     const { hotelName, hotelPhone, hotelAddress, hotelDesc, hotelTags, hotelRating,
@@ -249,7 +255,69 @@ export async function onRequestPost(context) {
     if (!hotelName) return jsonResponse({ success: false, message: '缺少酒店名称' });
     if (!rooms || !rooms.length) return jsonResponse({ success: false, message: '至少需要一个房型' });
 
-    // Generate HTML
+    // ===== 在 D1 中创建酒店配置（多租户） =====
+    let hotelId = null;
+    let slug = null;
+    let bookingLink = bookingUrl || '';
+
+    if (env.DB) {
+      try {
+        // 生成 slug
+        slug = generateSlug(hotelName);
+        const existing = await env.DB.prepare('SELECT id FROM hotels WHERE slug = ?').bind(slug).first();
+        if (existing) slug = slug + '-' + Date.now().toString(36);
+
+        const now = new Date().toISOString();
+
+        // 插入酒店
+        await env.DB.prepare(
+          'INSERT INTO hotels (slug, name, address, phone, rating, review_count, tags, description, checkin_time, checkout_time, parking, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).bind(
+          slug, hotelName,
+          hotelAddress || '', hotelPhone || '',
+          hotelRating || 4.5, reviewCount || 0,
+          hotelTags || '', hotelDesc || '',
+          checkinTime || '14:00', checkoutTime || '12:00',
+          parking || '免费', 1, now, now
+        ).run();
+
+        const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE slug = ?').bind(slug).first();
+        hotelId = hotel.id;
+
+        // 插入房型
+        for (let i = 0; i < rooms.length; i++) {
+          const r = rooms[i];
+          const roomId = slug + '-' + i;
+          await env.DB.prepare(
+            'INSERT INTO rooms (hotel_id, room_id, name, price, area, bed_type, features, total_stock, status, sort_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          ).bind(hotelId, roomId, r.name, r.price || 0, r.area || '', r.bed || '', r.features || '', r.stock || 1, 'active', i + 1, now).run();
+        }
+
+        // 插入默认优惠券模板
+        const defaultCoupons = [
+          { coupon_id: slug + '-new', name: '新客专享', amount: 30, condition: 200, days: 7, desc: '满200减30', max: 1 },
+          { coupon_id: slug + '-share', name: '分享立减', amount: 50, condition: 300, days: 7, desc: '满300减50', max: 999 }
+        ];
+        for (const c of defaultCoupons) {
+          await env.DB.prepare(
+            'INSERT INTO coupon_templates (hotel_id, coupon_id, name, amount, condition_amount, expire_days, description, max_claim_per_user, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          ).bind(hotelId, c.coupon_id, c.name, c.amount, c.condition, c.days, c.desc, c.max, 'active', now).run();
+        }
+
+        // 生成带 hotel slug 的预订链接
+        if (bookingUrl) {
+          const sep = bookingUrl.includes('?') ? '&' : '?';
+          bookingLink = `${bookingUrl}${sep}hotel=${slug}`;
+        } else {
+          bookingLink = `?hotel=${slug}`;
+        }
+      } catch(e) {
+        console.error('Failed to create hotel config:', e.message);
+        // 不阻断生成流程，继续生成 HTML
+      }
+    }
+
+    // Generate HTML（使用带 hotel slug 的预订链接）
     const html = generateHotelHTML({
       hotelName: hotelName || '精品酒店',
       hotelPhone: hotelPhone || '',
@@ -261,13 +329,19 @@ export async function onRequestPost(context) {
       checkinTime: checkinTime || '14:00',
       checkoutTime: checkoutTime || '12:00',
       parking: parking || '免费',
-      bookingUrl: bookingUrl || '#',
+      bookingUrl: bookingLink || '#',
       rooms,
       photos: photos || []
     });
 
-    // Return HTML directly for preview + download
-    return jsonResponse({ success: true, html: html });
+    // Return HTML + hotel info
+    return jsonResponse({
+      success: true,
+      html,
+      hotelId,
+      slug,
+      bookingLink
+    });
 
   } catch (e) {
     return jsonResponse({ success: false, message: '生成失败: ' + (e.message || '未知错误') }, 500);

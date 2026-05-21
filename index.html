@@ -485,10 +485,27 @@
         // 运行时 HOTEL 对象（会被 API 数据覆盖）
         let HOTEL = { ...DEFAULT_HOTEL };
 
+        // ========== 多租户：从 URL 解析酒店标识 ==========
+        let currentHotelSlug = '';
+        let currentHotelId = null;
+
+        function getHotelSlug() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('hotel') || '';
+        }
+
+        function addHotelParam(url) {
+            // 给 API URL 添加 hotel 参数
+            if (!currentHotelSlug) return url;
+            const sep = url.includes('?') ? '&' : '?';
+            return `${url}${sep}hotel=${currentHotelSlug}`;
+        }
+
         // ========== 从 D1 加载配置 ==========
         async function loadHotelConfig() {
             try {
-                const res = await fetch('/api/config');
+                currentHotelSlug = getHotelSlug();
+                const res = await fetch(addHotelParam('/api/config'));
                 const data = await res.json();
                 if (data.success && data.config) {
                     const cfg = data.config;
@@ -502,6 +519,8 @@
                             HOTEL.tags = cfg.hotel.tags.map((t, i) => ({ text: t, type: i === 0 ? 'orange' : '' }));
                         }
                     }
+                    // 保存 hotelId 用于后续 API 调用
+                    if (data.hotelId) currentHotelId = data.hotelId;
                     if (cfg.rooms && cfg.rooms.length) {
                         HOTEL.rooms = cfg.rooms.map(r => ({
                             id: r.id, name: r.name, price: r.price,
@@ -872,7 +891,7 @@
         // ========== 优惠券 ==========
         async function loadClaimedCoupons(phone) {
             try {
-                const res = await fetch(`/api/coupon?phone=${encodeURIComponent(phone)}`);
+                const res = await fetch(addHotelParam(`/api/coupon?phone=${encodeURIComponent(phone)}`));
                 const data = await res.json();
                 if (data.success) {
                     claimedCoupons = data.coupons || []; // 对象数组，含 used/source/dbId
@@ -923,7 +942,8 @@
                         amount: coupon ? coupon.amount : 0,
                         condition: coupon ? coupon.condition : 0,
                         expireDays: coupon ? coupon.expire : 7,
-                        referrerPhone
+                        referrerPhone,
+                        hotelId: currentHotelId
                     })
                 });
                 const data = await res.json();
@@ -957,7 +977,7 @@
         async function fetchRoomAvailability() {
             try {
                 const today = formatDate(new Date());
-                const res = await fetch(`/api/config?action=availability&date=${today}`);
+                const res = await fetch(addHotelParam(`/api/config?action=availability&date=${today}`));
                 const data = await res.json();
                 if (data.success && data.availability) {
                     roomAvailability = data.availability;
@@ -1035,6 +1055,7 @@
 
             const orderData = {
                 hotel: HOTEL.name,
+                hotelId: currentHotelId,
                 roomId: selectedRoom.id,
                 roomName: selectedRoom.name,
                 roomPrice: selectedRoom.price,
@@ -1067,7 +1088,7 @@
                         fetch('/api/coupon', {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ phone: guestPhone, couponId: usedCouponId, orderId: result.orderId || '' })
+                            body: JSON.stringify({ phone: guestPhone, couponId: usedCouponId, orderId: result.orderId || '', hotelId: currentHotelId })
                         }).catch(e => console.error('Mark coupon used error:', e));
                         // 本地也更新状态
                         const cc = claimedCoupons.find(c => c.id === usedCouponId && !c.used);
@@ -1141,10 +1162,15 @@
         /** 获取当前分享链接 */
         function getShareLink() {
             const baseUrl = window.location.origin + window.location.pathname;
-            if (currentShareType === 'coupon' && claimPhone) {
-                return baseUrl + '?ref=' + claimPhone;
+            let link = baseUrl;
+            // 保留 hotel 参数
+            if (currentHotelSlug) {
+                link += '?hotel=' + currentHotelSlug;
             }
-            return baseUrl;
+            if (currentShareType === 'coupon' && claimPhone) {
+                link += (link.includes('?') ? '&' : '?') + 'ref=' + claimPhone;
+            }
+            return link;
         }
 
         /** 复制分享链接 */
