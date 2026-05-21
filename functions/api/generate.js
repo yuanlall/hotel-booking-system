@@ -254,10 +254,14 @@ async function deployToPages(accountId, token, projectName, htmlContent) {
     );
   } catch(e) { /* ignore */ }
 
-  // 2. Upload via Direct Upload using FormData
+  // 2. Upload via Direct Upload — CF requires a JSON manifest part + file parts
+  const manifest = JSON.stringify([{ fileName: "/index.html", content: htmlContent, contentType: "text/html; charset=utf-8" }]);
+  const manifestBlob = new Blob([manifest], { type: 'application/json' });
+
   const formData = new FormData();
-  const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
-  formData.append('index.html', blob, 'index.html');
+  formData.append('manifest', manifestBlob, 'manifest.json');
+  const htmlBlob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+  formData.append('index.html', htmlBlob, 'index.html');
 
   const uploadResp = await fetch(
     'https://api.cloudflare.com/client/v4/accounts/' + accountId + '/pages/projects/' + projectName + '/deployments',
