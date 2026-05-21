@@ -1,5 +1,5 @@
 // ========== Cloudflare Pages Function: AI 官网生成器 ==========
-// POST /api/generate — 接收酒店配置，生成官网HTML，部署到 CF Pages
+// POST /api/generate — 接收酒店配置，生成官网HTML并返回
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -240,73 +240,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
 </html>`;
 }
 
-// 部署到 Cloudflare Pages (Direct Upload via multipart/form-data)
-async function deployToPages(accountId, token, projectName, htmlContent) {
-  // 1. Create project (ignore if already exists)
-  try {
-    await fetch(
-      'https://api.cloudflare.com/client/v4/accounts/' + accountId + '/pages/projects',
-      {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: projectName, production_branch: 'main' })
-      }
-    );
-  } catch(e) { /* ignore */ }
-
-  // 2. Build multipart/form-data manually with proper content-disposition
-  // CF expects: a JSON "manifest" part (application/json) describing files,
-  // followed by file content parts (matching the manifest entries)
-  const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
-  const b64Content = btoa(unescape(encodeURIComponent(htmlContent)));
-  const manifest = JSON.stringify([
-    { fileName: '/index.html', content: b64Content, contentType: 'text/html; charset=utf-8' }
-  ]);
-
-  // Build multipart body
-  const parts = [];
-  // Manifest part
-  parts.push(`--${boundary}\r\n`);
-  parts.push(`Content-Disposition: form-data; name="manifest"\r\n`);
-  parts.push(`Content-Type: application/json\r\n\r\n`);
-  parts.push(manifest + '\r\n');
-  // Index.html part (also include as form file for compatibility)
-  parts.push(`--${boundary}\r\n`);
-  parts.push(`Content-Disposition: form-data; name="/index.html"\r\n`);
-  parts.push(`Content-Type: text/html; charset=utf-8\r\n\r\n`);
-  parts.push(htmlContent + '\r\n');
-  parts.push(`--${boundary}--\r\n`);
-  const body = parts.join('');
-
-  const uploadResp = await fetch(
-    'https://api.cloudflare.com/client/v4/accounts/' + accountId + '/pages/projects/' + projectName + '/deployments',
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'multipart/form-data; boundary=' + boundary
-      },
-      body: body
-    }
-  );
-
-  if (!uploadResp.ok) {
-    const errText = await uploadResp.text();
-    return { success: false, message: 'HTTP ' + uploadResp.status + ': ' + errText.slice(0, 500) };
-  }
-  const uploadResult = await uploadResp.json();
-
-  if (uploadResult.success) {
-    const subdomain = uploadResult.result && uploadResult.result.subdomain;
-    return {
-      success: true,
-      url: subdomain ? 'https://' + subdomain : 'https://' + projectName + '.pages.dev'
-    };
-  } else {
-    return { success: false, message: (uploadResult.errors || []).map(e => e.message).join(', ') || 'Upload failed' };
-  }
-}
-
 export async function onRequestPost(context) {
   try {
     const body = await context.request.json();
@@ -333,28 +266,8 @@ export async function onRequestPost(context) {
       photos: photos || []
     });
 
-    // Generate project name (slug)
-    const slug = hotelName
-      .replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 30);
-    const projectName = 'hotel-' + slug.toLowerCase() + '-' + Date.now().toString(36);
-
-    // Deploy
-    const CF_TOKEN = context.env.CF_API_TOKEN;
-    const CF_ACCOUNT = context.env.CF_ACCOUNT_ID;
-    if (!CF_TOKEN || !CF_ACCOUNT) {
-      return jsonResponse({ success: false, message: '缺少部署配置，请设置 CF_API_TOKEN 和 CF_ACCOUNT_ID 环境变量' });
-    }
-
-    const deployResult = await deployToPages(CF_ACCOUNT, CF_TOKEN, projectName, html);
-
-    if (deployResult.success) {
-      return jsonResponse({ success: true, url: deployResult.url, projectName });
-    } else {
-      return jsonResponse({ success: false, message: '部署失败: ' + deployResult.message });
-    }
+    // Return HTML directly for preview + download
+    return jsonResponse({ success: true, html: html });
 
   } catch (e) {
     return jsonResponse({ success: false, message: '生成失败: ' + (e.message || '未知错误') }, 500);

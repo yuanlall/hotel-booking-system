@@ -28,10 +28,11 @@
     .badge { display: inline-block; background: #dbeafe; color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 12px; }
 
     .steps { display: flex; justify-content: center; gap: 0; margin-bottom: 40px; }
-    .step { display: flex; align-items: center; gap: 8px; color: var(--text-light); font-size: 14px; }
+    .step { display: flex; align-items: center; gap: 8px; color: var(--text-light); font-size: 14px; cursor: pointer; }
     .step.active { color: var(--primary); }
     .step-num { width: 28px; height: 28px; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
     .step.active .step-num { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .step.done .step-num { background: var(--success); border-color: var(--success); color: #fff; }
     .step-line { width: 60px; height: 2px; background: var(--border); }
 
     .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 32px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -75,71 +76,63 @@
     .btn-preview:hover { background: var(--primary-dark); }
     .btn-preview:disabled { background: #94a3b8; cursor: not-allowed; }
 
-    /* Preview modal */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; padding: 20px; overflow-y: auto; }
-    .modal-overlay.show { display: flex; align-items: flex-start; justify-content: center; }
-    .modal-content { background: #fff; border-radius: 16px; max-width: 480px; width: 100%; padding: 24px; margin: 20px auto; }
-    .modal-close { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-light); }
-    .modal-close:hover { color: var(--text); }
+    /* Result section */
+    .result-section { display: none; }
+    .result-section.show { display: block; }
 
-    .preview-result { text-align: center; padding: 20px 0; }
-    .preview-result .icon { font-size: 48px; margin-bottom: 12px; }
-    .preview-result h3 { font-size: 18px; margin-bottom: 8px; }
-    .preview-result p { color: var(--text-light); font-size: 14px; margin-bottom: 20px; }
-    .preview-url { display: block; background: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 13px; color: var(--primary); word-break: break-all; text-decoration: none; margin-bottom: 12px; }
-    .preview-url:hover { text-decoration: underline; }
+    /* Preview iframe */
+    .preview-frame { width: 100%; height: 600px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; margin-bottom: 20px; }
+    .preview-bar { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+    .btn-primary { flex: 1; max-width: 200px; padding: 12px 24px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { padding: 12px 24px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    /* Deploy guide */
+    .deploy-guide { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 24px; margin-top: 20px; }
+    .deploy-guide h3 { font-size: 15px; color: #166534; margin-bottom: 12px; }
+    .deploy-guide ol { padding-left: 20px; font-size: 13px; color: #15803d; line-height: 1.8; }
+    .deploy-guide code { background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
 
     /* Status */
     .status-area { margin-top: 16px; display: none; }
     .status-area.show { display: block; }
-    .status-log { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; max-height: 300px; overflow-y: auto; margin-bottom: 16px; }
+    .status-log { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; max-height: 200px; overflow-y: auto; margin-bottom: 16px; }
     .status-log .line { padding: 2px 0; }
     .status-log .ok { color: #4ade80; }
     .status-log .err { color: #f87171; }
     .status-log .info { color: #60a5fa; }
 
-    .btn-copy { padding: 6px 16px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; cursor: pointer; }
-    .btn-copy:hover { background: #e2e8f0; }
-
-    /* Deploy section */
-    .deploy-section { display: none; }
-    .deploy-section.show { display: block; margin-top: 24px; }
-    .deploy-url { display: block; background: #ecfdf5; border: 1px solid #a7f3d0; color: var(--success); padding: 14px; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 12px; text-decoration: none; }
-    .deploy-url:hover { background: #d1fae5; }
-    .btn-row { display: flex; gap: 8px; justify-content: center; }
-    .btn-secondary { flex: 1; padding: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; cursor: pointer; }
-    .btn-secondary:hover { background: #e2e8f0; }
-    .btn-primary { flex: 1; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-    .btn-primary:hover { background: var(--primary-dark); }
-    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
-
     /* Loading spinner */
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Progress */
-    .progress { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin: 12px 0; }
-    .progress-bar { height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.3s; }
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .room-grid { grid-template-columns: 1fr 1fr; }
+      .photo-grid { grid-template-columns: repeat(3, 1fr); }
+      .preview-frame { height: 400px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>🏨 酒店官网生成器</h1>
-      <p>填入酒店信息，5分钟生成精美官网</p>
-      <span class="badge">⚡ 基于 Cloudflare Pages 免费托管</span>
+      <p>填入酒店信息，即刻生成精美官网</p>
+      <span class="badge">⚡ 免费生成 · 支持预览与下载</span>
     </header>
 
-    <div class="steps">
-      <div class="step active"><div class="step-num">1</div><span>填写信息</span></div>
+    <div class="steps" id="stepsBar">
+      <div class="step active" id="step1"><div class="step-num">1</div><span>填写信息</span></div>
       <div class="step-line"></div>
-      <div class="step"><div class="step-num">2</div><span>预览官网</span></div>
+      <div class="step" id="step2"><div class="step-num">2</div><span>预览官网</span></div>
       <div class="step-line"></div>
-      <div class="step"><div class="step-num">3</div><span>一键部署</span></div>
+      <div class="step" id="step3"><div class="step-num">3</div><span>下载部署</span></div>
     </div>
 
+    <!-- Step 1: Form -->
     <form id="genForm" onsubmit="return false;">
-      <!-- 基础信息 -->
       <div class="card">
         <div class="card-title"><span class="icon">🏨</span>基础信息</div>
         <div class="form-grid">
@@ -186,7 +179,6 @@
         </div>
       </div>
 
-      <!-- 房型信息 -->
       <div class="card">
         <div class="card-title"><span class="icon">🛏️</span>房型配置</div>
         <div id="roomsList">
@@ -196,30 +188,11 @@
               <button type="button" class="btn-remove" onclick="removeRoom(this)" style="display:none">删除</button>
             </div>
             <div class="room-grid">
-              <div class="form-group">
-                <label>房型名称 *</label>
-                <input type="text" class="room-name" placeholder="如：豪华大床房" value="豪华大床房" required>
-              </div>
-              <div class="form-group">
-                <label>价格/晚(元) *</label>
-                <input type="number" class="room-price" min="0" placeholder="328" value="328" required>
-              </div>
-              <div class="form-group">
-                <label>面积(m²)</label>
-                <input type="text" class="room-area" placeholder="28" value="28">
-              </div>
-              <div class="form-group">
-                <label>床型</label>
-                <input type="text" class="room-bed" placeholder="大床1.8m" value="大床1.8m">
-              </div>
-              <div class="form-group">
-                <label>房间数量</label>
-                <input type="number" class="room-stock" min="1" value="5">
-              </div>
-              <div class="form-group" style="grid-column: 1/-1">
-                <label>特色（逗号分隔）</label>
-                <input type="text" class="room-features" placeholder="免费WiFi,含早,免费停车" value="免费WiFi,含早">
-              </div>
+              <div class="form-group"><label>房型名称 *</label><input type="text" class="room-name" value="豪华大床房" required></div>
+              <div class="form-group"><label>价格/晚(元) *</label><input type="number" class="room-price" min="0" value="328" required></div>
+              <div class="form-group"><label>面积(m²)</label><input type="text" class="room-area" value="28"></div>
+              <div class="form-group"><label>床型</label><input type="text" class="room-bed" value="大床1.8m"></div>
+              <div class="form-group" style="grid-column: 1/-1"><label>特色（逗号分隔）</label><input type="text" class="room-features" value="免费WiFi,含早"></div>
             </div>
           </div>
           <div class="room-item" data-index="1">
@@ -228,30 +201,11 @@
               <button type="button" class="btn-remove" onclick="removeRoom(this)">删除</button>
             </div>
             <div class="room-grid">
-              <div class="form-group">
-                <label>房型名称 *</label>
-                <input type="text" class="room-name" placeholder="如：标准双床房" value="标准双床房" required>
-              </div>
-              <div class="form-group">
-                <label>价格/晚(元) *</label>
-                <input type="number" class="room-price" min="0" value="279" required>
-              </div>
-              <div class="form-group">
-                <label>面积(m²)</label>
-                <input type="text" class="room-area" value="30">
-              </div>
-              <div class="form-group">
-                <label>床型</label>
-                <input type="text" class="room-bed" value="双床1.2m">
-              </div>
-              <div class="form-group">
-                <label>房间数量</label>
-                <input type="number" class="room-stock" min="1" value="8">
-              </div>
-              <div class="form-group" style="grid-column: 1/-1">
-                <label>特色（逗号分隔）</label>
-                <input type="text" class="room-features" value="免费WiFi,含早">
-              </div>
+              <div class="form-group"><label>房型名称 *</label><input type="text" class="room-name" value="标准双床房" required></div>
+              <div class="form-group"><label>价格/晚(元) *</label><input type="number" class="room-price" min="0" value="279" required></div>
+              <div class="form-group"><label>面积(m²)</label><input type="text" class="room-area" value="30"></div>
+              <div class="form-group"><label>床型</label><input type="text" class="room-bed" value="双床1.2m"></div>
+              <div class="form-group" style="grid-column: 1/-1"><label>特色（逗号分隔）</label><input type="text" class="room-features" value="免费WiFi,含早"></div>
             </div>
           </div>
           <div class="room-item" data-index="2">
@@ -260,80 +214,29 @@
               <button type="button" class="btn-remove" onclick="removeRoom(this)">删除</button>
             </div>
             <div class="room-grid">
-              <div class="form-group">
-                <label>房型名称 *</label>
-                <input type="text" class="room-name" placeholder="如：行政套房" value="行政套房" required>
-              </div>
-              <div class="form-group">
-                <label>价格/晚(元) *</label>
-                <input type="number" class="room-price" min="0" value="588" required>
-              </div>
-              <div class="form-group">
-                <label>面积(m²)</label>
-                <input type="text" class="room-area" value="45">
-              </div>
-              <div class="form-group">
-                <label>床型</label>
-                <input type="text" class="room-bed" value="大床2.0m">
-              </div>
-              <div class="form-group">
-                <label>房间数量</label>
-                <input type="number" class="room-stock" min="1" value="2">
-              </div>
-              <div class="form-group" style="grid-column: 1/-1">
-                <label>特色（逗号分隔）</label>
-                <input type="text" class="room-features" value="客厅,含早">
-              </div>
+              <div class="form-group"><label>房型名称 *</label><input type="text" class="room-name" value="行政套房" required></div>
+              <div class="form-group"><label>价格/晚(元) *</label><input type="number" class="room-price" min="0" value="588" required></div>
+              <div class="form-group"><label>面积(m²)</label><input type="text" class="room-area" value="45"></div>
+              <div class="form-group"><label>床型</label><input type="text" class="room-bed" value="大床2.0m"></div>
+              <div class="form-group" style="grid-column: 1/-1"><label>特色（逗号分隔）</label><input type="text" class="room-features" value="客厅,含早"></div>
             </div>
           </div>
         </div>
         <button type="button" class="btn-add" onclick="addRoom()">+ 添加房型</button>
       </div>
 
-      <!-- 照片上传 -->
       <div class="card">
         <div class="card-title"><span class="icon">📷</span>酒店照片（可跳过，使用示例图）</div>
-        <p class="photo-hint">上传5张酒店照片：第1张外景/大厅，第2-5张客房/餐厅等。也可先跳过，后续在管理后台替换。</p>
+        <p class="photo-hint">上传5张酒店照片：第1张外景/大厅，第2-5张客房/餐厅等。也可先跳过使用示例图。</p>
         <div class="photo-grid">
-          <div>
-            <div class="photo-label">外景/大厅 *</div>
-            <div class="photo-item" id="photo0">
-              <div class="photo-placeholder"><span class="icon">🏔️</span>外景图</div>
-              <input type="file" accept="image/*" onchange="previewPhoto(this, 0)">
-            </div>
-          </div>
-          <div>
-            <div class="photo-label">客房/大堂</div>
-            <div class="photo-item" id="photo1">
-              <div class="photo-placeholder"><span class="icon">🛋️</span>客房图</div>
-              <input type="file" accept="image/*" onchange="previewPhoto(this, 1)">
-            </div>
-          </div>
-          <div>
-            <div class="photo-label">餐厅/早餐</div>
-            <div class="photo-item" id="photo2">
-              <div class="photo-placeholder"><span class="icon">🍳</span>餐厅图</div>
-              <input type="file" accept="image/*" onchange="previewPhoto(this, 2)">
-            </div>
-          </div>
-          <div>
-            <div class="photo-label">卫浴设施</div>
-            <div class="photo-item" id="photo3">
-              <div class="photo-placeholder"><span class="icon">🚿</span>卫浴图</div>
-              <input type="file" accept="image/*" onchange="previewPhoto(this, 3)">
-            </div>
-          </div>
-          <div>
-            <div class="photo-label">其他特色</div>
-            <div class="photo-item" id="photo4">
-              <div class="photo-placeholder"><span class="icon">✨</span>特色图</div>
-              <input type="file" accept="image/*" onchange="previewPhoto(this, 4)">
-            </div>
-          </div>
+          <div><div class="photo-label">外景/大厅 *</div><div class="photo-item" id="photo0"><div class="photo-placeholder"><span class="icon">🏔️</span>外景图</div><input type="file" accept="image/*" onchange="previewPhoto(this, 0)"></div></div>
+          <div><div class="photo-label">客房/大堂</div><div class="photo-item" id="photo1"><div class="photo-placeholder"><span class="icon">🛋️</span>客房图</div><input type="file" accept="image/*" onchange="previewPhoto(this, 1)"></div></div>
+          <div><div class="photo-label">餐厅/早餐</div><div class="photo-item" id="photo2"><div class="photo-placeholder"><span class="icon">🍳</span>餐厅图</div><input type="file" accept="image/*" onchange="previewPhoto(this, 2)"></div></div>
+          <div><div class="photo-label">卫浴设施</div><div class="photo-item" id="photo3"><div class="photo-placeholder"><span class="icon">🚿</span>卫浴图</div><input type="file" accept="image/*" onchange="previewPhoto(this, 3)"></div></div>
+          <div><div class="photo-label">其他特色</div><div class="photo-item" id="photo4"><div class="photo-placeholder"><span class="icon">✨</span>特色图</div><input type="file" accept="image/*" onchange="previewPhoto(this, 4)"></div></div>
         </div>
       </div>
 
-      <!-- 预订页绑定 -->
       <div class="card">
         <div class="card-title"><span class="icon">🔗</span>预订页绑定</div>
         <div class="form-grid">
@@ -350,19 +253,34 @@
       </button>
     </form>
 
-    <!-- Deploy section (hidden initially) -->
-    <div class="deploy-section" id="deploySection">
+    <!-- Step 2 & 3: Preview + Download -->
+    <div class="result-section" id="resultSection">
       <div class="card">
-        <div class="card-title"><span class="icon">🎉</span>生成完成！</div>
-        <a class="deploy-url" id="deployUrl" href="#" target="_blank">打开您的酒店官网 →</a>
-        <div class="btn-row">
-          <button class="btn-secondary" onclick="copyUrl()">📋 复制链接</button>
-          <button class="btn-primary" onclick="redeploy()">🔄 重新生成</button>
+        <div class="card-title"><span class="icon">✅</span>官网生成成功！</div>
+        <p style="color:var(--text-light);font-size:14px;margin-bottom:16px">下方是实时预览，确认无误后可下载 HTML 文件部署上线。</p>
+        <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts"></iframe>
+        <div class="preview-bar">
+          <button class="btn-primary" onclick="downloadHTML()">📥 下载 index.html</button>
+          <button class="btn-secondary" onclick="backToEdit()">✏️ 返回修改</button>
         </div>
+      </div>
+
+      <div class="deploy-guide">
+        <h3>📋 部署到 Cloudflare Pages（免费）</h3>
+        <ol>
+          <li>下载上方的 <code>index.html</code> 文件</li>
+          <li>创建一个文件夹，将 <code>index.html</code> 放入其中</li>
+          <li>登录 <a href="https://dash.cloudflare.com/?to=/:account/workers-and-pages" target="_blank">Cloudflare Dashboard</a> → Workers & Pages</li>
+          <li>点击 <strong>创建</strong> → <strong>拖拽上传你的资源</strong></li>
+          <li>将文件夹拖入上传区域，输入项目名，点击部署</li>
+          <li>完成后会获得一个 <code>xxx.pages.dev</code> 的免费域名 🎉</li>
+        </ol>
+        <p style="margin-top:12px;font-size:12px;color:#15803d">
+          💡 高级用户也可以使用 <code>wrangler pages deploy ./your-folder</code> 命令行部署
+        </p>
       </div>
     </div>
 
-    <!-- Status log -->
     <div class="status-area" id="statusArea">
       <div class="status-log" id="statusLog"></div>
     </div>
@@ -371,6 +289,7 @@
 <script>
   let roomCount = 3;
   let photoData = [null, null, null, null, null];
+  let generatedHTML = '';
 
   function addRoom() {
     roomCount++;
@@ -381,30 +300,11 @@
           <button type="button" class="btn-remove" onclick="removeRoom(this)">删除</button>
         </div>
         <div class="room-grid">
-          <div class="form-group">
-            <label>房型名称 *</label>
-            <input type="text" class="room-name" placeholder="如：精选房" required>
-          </div>
-          <div class="form-group">
-            <label>价格/晚(元) *</label>
-            <input type="number" class="room-price" min="0" placeholder="288" required>
-          </div>
-          <div class="form-group">
-            <label>面积(m²)</label>
-            <input type="text" class="room-area" placeholder="25">
-          </div>
-          <div class="form-group">
-            <label>床型</label>
-            <input type="text" class="room-bed" placeholder="大床1.5m">
-          </div>
-          <div class="form-group">
-            <label>房间数量</label>
-            <input type="number" class="room-stock" min="1" value="3">
-          </div>
-          <div class="form-group" style="grid-column: 1/-1">
-            <label>特色（逗号分隔）</label>
-            <input type="text" class="room-features" placeholder="免费WiFi,含早">
-          </div>
+          <div class="form-group"><label>房型名称 *</label><input type="text" class="room-name" placeholder="如：精选房" required></div>
+          <div class="form-group"><label>价格/晚(元) *</label><input type="number" class="room-price" min="0" placeholder="288" required></div>
+          <div class="form-group"><label>面积(m²)</label><input type="text" class="room-area" placeholder="25"></div>
+          <div class="form-group"><label>床型</label><input type="text" class="room-bed" placeholder="大床1.5m"></div>
+          <div class="form-group" style="grid-column: 1/-1"><label>特色（逗号分隔）</label><input type="text" class="room-features" placeholder="免费WiFi,含早"></div>
         </div>
       </div>
     `;
@@ -449,7 +349,6 @@
         price,
         area: item.querySelector('.room-area').value.trim(),
         bed: item.querySelector('.room-bed').value.trim(),
-        stock: parseInt(item.querySelector('.room-stock').value) || 1,
         features: item.querySelector('.room-features').value.trim()
       });
     });
@@ -474,7 +373,7 @@
     const el = document.getElementById('statusLog');
     const span = document.createElement('div');
     span.className = 'line ' + type;
-    span.textContent = new Date().toLocaleTimeString('zh-CN') + ' ' + msg;
+    span.textContent = msg;
     el.appendChild(span);
     el.scrollTop = el.scrollHeight;
   }
@@ -483,12 +382,20 @@
     document.getElementById('statusArea').classList.add('show');
   }
 
+  function setStep(n) {
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById('step' + i);
+      el.classList.remove('active', 'done');
+      if (i < n) el.classList.add('done');
+      if (i === n) el.classList.add('active');
+    }
+  }
+
   async function generate() {
     const btn = document.getElementById('btnPreview');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>生成中...';
     showStatus();
-    log('正在生成官网...', 'info');
 
     const data = collectFormData();
     if (!data.hotelName || !data.rooms.length) {
@@ -499,7 +406,7 @@
     }
 
     try {
-      log('正在调用 AI 生成官网...', 'info');
+      log('正在生成官网...', 'info');
       const resp = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -507,36 +414,53 @@
       });
       const result = await resp.json();
 
-      if (result.success) {
-        log('部署成功！', 'ok');
-        document.getElementById('deployUrl').href = result.url;
-        document.getElementById('deployUrl').textContent = result.url;
-        document.getElementById('deploySection').classList.add('show');
-        btn.textContent = '✅ 生成完成';
-        // Scroll to deploy section
-        document.getElementById('deploySection').scrollIntoView({ behavior: 'smooth' });
+      if (result.success && result.html) {
+        generatedHTML = result.html;
+        log('✅ 生成成功！', 'ok');
+
+        // Show preview in iframe
+        document.getElementById('genForm').style.display = 'none';
+        document.getElementById('resultSection').classList.add('show');
+        setStep(2);
+
+        // Write HTML into iframe using srcdoc
+        const iframe = document.getElementById('previewFrame');
+        iframe.srcdoc = result.html;
+
+        log('预览已加载', 'ok');
       } else {
-        log('生成失败: ' + result.message, 'err');
+        log('❌ 生成失败: ' + (result.message || '未知错误'), 'err');
         btn.disabled = false;
         btn.textContent = '✨ 开始生成官网';
       }
     } catch(e) {
-      log('请求失败: ' + e.message, 'err');
+      log('❌ 请求失败: ' + e.message, 'err');
       btn.disabled = false;
       btn.textContent = '✨ 开始生成官网';
     }
   }
 
-  function copyUrl() {
-    const url = document.getElementById('deployUrl').href;
-    navigator.clipboard.writeText(url).then(() => alert('链接已复制！'));
+  function downloadHTML() {
+    if (!generatedHTML) return;
+    const hotelName = document.getElementById('hotelName').value.trim() || 'hotel';
+    const blob = new Blob([generatedHTML], { type: 'text/html; charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'index.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setStep(3);
   }
 
-  function redeploy() {
-    document.getElementById('deploySection').classList.remove('show');
+  function backToEdit() {
+    document.getElementById('resultSection').classList.remove('show');
+    document.getElementById('genForm').style.display = '';
     document.getElementById('btnPreview').disabled = false;
     document.getElementById('btnPreview').textContent = '✨ 开始生成官网';
-    document.getElementById('statusLog').innerHTML = '';
+    setStep(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 </script>
