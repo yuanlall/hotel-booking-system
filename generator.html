@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>酒店官网生成器 — 5分钟生成精美官网</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1e40af;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --success: #059669;
+      --error: #dc2626;
+      --radius: 12px;
+    }
+    body { font-family: -apple-system, 'PingFang SC', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+    header { text-align: center; margin-bottom: 40px; }
+    header h1 { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    header p { color: var(--text-light); font-size: 16px; }
+    .badge { display: inline-block; background: #dbeafe; color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 12px; }
+
+    .steps { display: flex; justify-content: center; gap: 0; margin-bottom: 40px; }
+    .step { display: flex; align-items: center; gap: 8px; color: var(--text-light); font-size: 14px; }
+    .step.active { color: var(--primary); }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+    .step.active .step-num { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .step-line { width: 60px; height: 2px; background: var(--border); }
+
+    .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 32px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .card-title .icon { font-size: 20px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 500; color: var(--text-light); }
+    input, textarea, select { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    textarea { resize: vertical; min-height: 80px; }
+    .hint { font-size: 12px; color: var(--text-light); }
+
+    .rooms-section { margin-top: 24px; }
+    .room-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+    .room-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .room-header h4 { font-size: 14px; font-weight: 600; }
+    .room-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+    .room-grid .form-group { gap: 4px; }
+    .room-grid label { font-size: 11px; }
+    .room-grid input { padding: 7px 10px; font-size: 13px; }
+    .btn-remove { background: #fee2e2; color: var(--error); border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+    .btn-remove:hover { background: #fecaca; }
+    .btn-add { width: 100%; padding: 10px; border: 2px dashed var(--border); border-radius: 8px; background: transparent; color: var(--text-light); font-size: 14px; cursor: pointer; margin-top: 8px; }
+    .btn-add:hover { border-color: var(--primary); color: var(--primary); }
+
+    .photos-section { margin-top: 24px; }
+    .photo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px; }
+    .photo-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 2px solid var(--border); cursor: pointer; transition: border-color 0.2s; }
+    .photo-item:hover { border-color: var(--primary); }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-item input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .photo-item .photo-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f1f5f9; color: var(--text-light); font-size: 11px; text-align: center; padding: 4px; }
+    .photo-item .photo-placeholder .icon { font-size: 20px; margin-bottom: 2px; }
+    .photo-label { font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
+    .photo-hint { font-size: 11px; color: var(--text-light); margin-bottom: 8px; }
+
+    .btn-preview { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 24px; }
+    .btn-preview:hover { background: var(--primary-dark); }
+    .btn-preview:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Preview modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; padding: 20px; overflow-y: auto; }
+    .modal-overlay.show { display: flex; align-items: flex-start; justify-content: center; }
+    .modal-content { background: #fff; border-radius: 16px; max-width: 480px; width: 100%; padding: 24px; margin: 20px auto; }
+    .modal-close { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-light); }
+    .modal-close:hover { color: var(--text); }
+
+    .preview-result { text-align: center; padding: 20px 0; }
+    .preview-result .icon { font-size: 48px; margin-bottom: 12px; }
+    .preview-result h3 { font-size: 18px; margin-bottom: 8px; }
+    .preview-result p { color: var(--text-light); font-size: 14px; margin-bottom: 20px; }
+    .preview-url { display: block; background: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 13px; color: var(--primary); word-break: break-all; text-decoration: none; margin-bottom: 12px; }
+    .preview-url:hover { text-decoration: underline; }
+
+    /* Status */
+    .status-area { margin-top: 16px; display: none; }
+    .status-area.show { display: block; }
+    .status-log { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; max-height: 300px; overflow-y: auto; margin-bottom: 16px; }
+    .status-log .line { padding: 2px 0; }
+    .status-log .ok { color: #4ade80; }
+    .status-log .err { color: #f87171; }
+    .status-log .info { color: #60a5fa; }
+
+    .btn-copy { padding: 6px 16px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; cursor: pointer; }
+    .btn-copy:hover { background: #e2e8f0; }
+
+    /* Deploy section */
+    .deploy-section { display: none; }
+    .deploy-section.show { display: block; margin-top: 24px; }
+    .deploy-url { display: block; background: #ecfdf5; border: 1px solid #a7f3d0; color: var(--success); padding: 14px; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 12px; text-decoration: none; }
+    .deploy-url:hover { background: #d1fae5; }
+    .btn-row { display: flex; gap: 8px; justify-content: center; }
+    .btn-secondary { flex: 1; padding: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-primary { flex: 1; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Loading spinner */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Progress */
+    .progress { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin: 12px 0; }
+    .progress-bar { height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.3s; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🏨 酒店官网生成器</h1>
+      <p>填入酒店信息，5分钟生成精美官网</p>
+      <span class="badge">⚡ 基于 Cloudflare Pages 免费托管</span>
+    </header>
+
+    <div class="steps">
+      <div class="step active"><div class="step-num">1</div><span>填写信息</span></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">2</div><span>预览官网</span></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-num">3</div><span>一键部署</span></div>
+    </div>
+
+    <form id="genForm" onsubmit="return false;">
+      <!-- 基础信息 -->
+      <div class="card">
+        <div class="card-title"><span class="icon">🏨</span>基础信息</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>酒店名称 *</label>
+            <input type="text" id="hotelName" placeholder="如：香江国际酒店" required value="香江国际酒店">
+          </div>
+          <div class="form-group">
+            <label>酒店电话 *</label>
+            <input type="text" id="hotelPhone" placeholder="如：0797-8681517" required value="0797-8681517">
+          </div>
+          <div class="form-group full">
+            <label>酒店地址 *</label>
+            <input type="text" id="hotelAddress" placeholder="详细地址" required value="赣州市章贡区长冈路13号达芬奇国际中心9栋">
+          </div>
+          <div class="form-group">
+            <label>酒店简介</label>
+            <textarea id="hotelDesc" placeholder="一句话介绍酒店特色...">赣州章贡区精品商务酒店，近博物馆，官方直营0佣金预订</textarea>
+          </div>
+          <div class="form-group">
+            <label>酒店标签（逗号分隔）</label>
+            <input type="text" id="hotelTags" placeholder="官方直营,近博物馆,免费停车" value="官方直营,近博物馆,免费停车,含早餐">
+          </div>
+          <div class="form-group">
+            <label>评分（0-5）</label>
+            <input type="number" id="hotelRating" min="0" max="5" step="0.1" value="4.8">
+          </div>
+          <div class="form-group">
+            <label>评价数量</label>
+            <input type="number" id="reviewCount" min="0" value="328">
+          </div>
+          <div class="form-group">
+            <label>入住时间</label>
+            <input type="text" id="checkinTime" value="14:00" placeholder="如：14:00">
+          </div>
+          <div class="form-group">
+            <label>退房时间</label>
+            <input type="text" id="checkoutTime" value="12:00" placeholder="如：12:00">
+          </div>
+          <div class="form-group">
+            <label>停车场</label>
+            <input type="text" id="parking" value="免费" placeholder="如：免费 / 收费 / 无">
+          </div>
+        </div>
+      </div>
+
+      <!-- 房型信息 -->
+      <div class="card">
+        <div class="card-title"><span class="icon">🛏️</span>房型配置</div>
+        <div id="roomsList">
+          <div class="room-item" data-index="0">
+            <div class="room-header">
+              <h4>房型 1</h4>
+              <button type="button" class="btn-remove" onclick="removeRoom(this)" style="display:none">删除</button>
+            </div>
+            <div class="room-grid">
+              <div class="form-group">
+                <label>房型名称 *</label>
+                <input type="text" class="room-name" placeholder="如：豪华大床房" value="豪华大床房" required>
+              </div>
+              <div class="form-group">
+                <label>价格/晚(元) *</label>
+                <input type="number" class="room-price" min="0" placeholder="328" value="328" required>
+              </div>
+              <div class="form-group">
+                <label>面积(m²)</label>
+                <input type="text" class="room-area" placeholder="28" value="28">
+              </div>
+              <div class="form-group">
+                <label>床型</label>
+                <input type="text" class="room-bed" placeholder="大床1.8m" value="大床1.8m">
+              </div>
+              <div class="form-group">
+                <label>房间数量</label>
+                <input type="number" class="room-stock" min="1" value="5">
+              </div>
+              <div class="form-group" style="grid-column: 1/-1">
+                <label>特色（逗号分隔）</label>
+                <input type="text" class="room-features" placeholder="免费WiFi,含早,免费停车" value="免费WiFi,含早">
+              </div>
+            </div>
+          </div>
+          <div class="room-item" data-index="1">
+            <div class="room-header">
+              <h4>房型 2</h4>
+              <button type="button" class="btn-remove" onclick="removeRoom(this)">删除</button>
+            </div>
+            <div class="room-grid">
+              <div class="form-group">
+                <label>房型名称 *</label>
+                <input type="text" class="room-name" placeholder="如：标准双床房" value="标准双床房" required>
+              </div>
+              <div class="form-group">
+                <label>价格/晚(元) *</label>
+                <input type="number" class="room-price" min="0" value="279" required>
+              </div>
+              <div class="form-group">
+                <label>面积(m²)</label>
+                <input type="text" class="room-area" value="30">
+              </div>
+              <div class="form-group">
+                <label>床型</label>
+                <input type="text" class="room-bed" value="双床1.2m">
+              </div>
+              <div class="form-group">
+                <label>房间数量</label>
+                <input type="number" class="room-stock" min="1" value="8">
+              </div>
+              <div class="form-group" style="grid-column: 1/-1">
+                <label>特色（逗号分隔）</label>
+                <input type="text" class="room-features" value="免费WiFi,含早">
+              </div>
+            </div>
+          </div>
+          <div class="room-item" data-index="2">
+            <div class="room-header">
+              <h4>房型 3</h4>
+              <button type="button" class="btn-remove" onclick="removeRoom(this)">删除</button>
+            </div>
+            <div class="room-grid">
+              <div class="form-group">
+                <label>房型名称 *</label>
+                <input type="text" class="room-name" placeholder="如：行政套房" value="行政套房" required>
+              </div>
+              <div class="form-group">
+                <label>价格/晚(元) *</label>
+                <input type="number" class="room-price" min="0" value="588" required>
+              </div>
+              <div class="form-group">
+                <label>面积(m²)</label>
+                <input type="text" class="room-area" value="45">
+              </div>
+              <div class="form-group">
+                <label>床型</label>
+                <input type="text" class="room-bed" value="大床2.0m">
+              </div>
+              <div class="form-group">
+                <label>房间数量</label>
+                <input type="number" class="room-stock" min="1" value="2">
+              </div>
+              <div class="form-group" style="grid-column: 1/-1">
+                <label>特色（逗号分隔）</label>
+                <input type="text" class="room-features" value="客厅,含早">
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-add" onclick="addRoom()">+ 添加房型</button>
+      </div>
+
+      <!-- 照片上传 -->
+      <div class="card">
+        <div class="card-title"><span class="icon">📷</span>酒店照片（可跳过，使用示例图）</div>
+        <p class="photo-hint">上传5张酒店照片：第1张外景/大厅，第2-5张客房/餐厅等。也可先跳过，后续在管理后台替换。</p>
+        <div class="photo-grid">
+          <div>
+            <div class="photo-label">外景/大厅 *</div>
+            <div class="photo-item" id="photo0">
+              <div class="photo-placeholder"><span class="icon">🏔️</span>外景图</div>
+              <input type="file" accept="image/*" onchange="previewPhoto(this, 0)">
+            </div>
+          </div>
+          <div>
+            <div class="photo-label">客房/大堂</div>
+            <div class="photo-item" id="photo1">
+              <div class="photo-placeholder"><span class="icon">🛋️</span>客房图</div>
+              <input type="file" accept="image/*" onchange="previewPhoto(this, 1)">
+            </div>
+          </div>
+          <div>
+            <div class="photo-label">餐厅/早餐</div>
+            <div class="photo-item" id="photo2">
+              <div class="photo-placeholder"><span class="icon">🍳</span>餐厅图</div>
+              <input type="file" accept="image/*" onchange="previewPhoto(this, 2)">
+            </div>
+          </div>
+          <div>
+            <div class="photo-label">卫浴设施</div>
+            <div class="photo-item" id="photo3">
+              <div class="photo-placeholder"><span class="icon">🚿</span>卫浴图</div>
+              <input type="file" accept="image/*" onchange="previewPhoto(this, 3)">
+            </div>
+          </div>
+          <div>
+            <div class="photo-label">其他特色</div>
+            <div class="photo-item" id="photo4">
+              <div class="photo-placeholder"><span class="icon">✨</span>特色图</div>
+              <input type="file" accept="image/*" onchange="previewPhoto(this, 4)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 预订页绑定 -->
+      <div class="card">
+        <div class="card-title"><span class="icon">🔗</span>预订页绑定</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>现有预订系统 URL</label>
+            <input type="url" id="bookingUrl" placeholder="https://hotel-booking-system-4zo.pages.dev" value="https://hotel-booking-system-4zo.pages.dev">
+            <span class="hint">生成的官网将直接链接到您的预订系统</span>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-preview" id="btnPreview" onclick="generate()">
+        ✨ 开始生成官网
+      </button>
+    </form>
+
+    <!-- Deploy section (hidden initially) -->
+    <div class="deploy-section" id="deploySection">
+      <div class="card">
+        <div class="card-title"><span class="icon">🎉</span>生成完成！</div>
+        <a class="deploy-url" id="deployUrl" href="#" target="_blank">打开您的酒店官网 →</a>
+        <div class="btn-row">
+          <button class="btn-secondary" onclick="copyUrl()">📋 复制链接</button>
+          <button class="btn-primary" onclick="redeploy()">🔄 重新生成</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status log -->
+    <div class="status-area" id="statusArea">
+      <div class="status-log" id="statusLog"></div>
+    </div>
+  </div>
+
+<script>
+  let roomCount = 3;
+  let photoData = [null, null, null, null, null];
+
+  function addRoom() {
+    roomCount++;
+    const html = `
+      <div class="room-item" data-index="${roomCount-1}">
+        <div class="room-header">
+          <h4>房型 ${roomCount}</h4>
+          <button type="button" class="btn-remove" onclick="removeRoom(this)">删除</button>
+        </div>
+        <div class="room-grid">
+          <div class="form-group">
+            <label>房型名称 *</label>
+            <input type="text" class="room-name" placeholder="如：精选房" required>
+          </div>
+          <div class="form-group">
+            <label>价格/晚(元) *</label>
+            <input type="number" class="room-price" min="0" placeholder="288" required>
+          </div>
+          <div class="form-group">
+            <label>面积(m²)</label>
+            <input type="text" class="room-area" placeholder="25">
+          </div>
+          <div class="form-group">
+            <label>床型</label>
+            <input type="text" class="room-bed" placeholder="大床1.5m">
+          </div>
+          <div class="form-group">
+            <label>房间数量</label>
+            <input type="number" class="room-stock" min="1" value="3">
+          </div>
+          <div class="form-group" style="grid-column: 1/-1">
+            <label>特色（逗号分隔）</label>
+            <input type="text" class="room-features" placeholder="免费WiFi,含早">
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('roomsList').insertAdjacentHTML('beforeend', html);
+  }
+
+  function removeRoom(btn) {
+    const items = document.querySelectorAll('.room-item');
+    if (items.length <= 1) return;
+    btn.closest('.room-item').remove();
+    updateRoomHeaders();
+  }
+
+  function updateRoomHeaders() {
+    document.querySelectorAll('.room-item').forEach((item, i) => {
+      item.querySelector('h4').textContent = '房型 ' + (i + 1);
+      const removes = item.querySelectorAll('.btn-remove');
+      removes.forEach(r => r.style.display = items.length > 1 ? '' : 'none');
+    });
+  }
+
+  function previewPhoto(input, index) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      photoData[index] = e.target.result;
+      const item = document.getElementById('photo' + index);
+      item.innerHTML = `<img src="${e.target.result}" alt="photo${index}">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function collectFormData() {
+    const rooms = [];
+    document.querySelectorAll('.room-item').forEach(item => {
+      const name = item.querySelector('.room-name').value.trim();
+      const price = parseInt(item.querySelector('.room-price').value) || 0;
+      if (!name) return;
+      rooms.push({
+        name,
+        price,
+        area: item.querySelector('.room-area').value.trim(),
+        bed: item.querySelector('.room-bed').value.trim(),
+        stock: parseInt(item.querySelector('.room-stock').value) || 1,
+        features: item.querySelector('.room-features').value.trim()
+      });
+    });
+    return {
+      hotelName: document.getElementById('hotelName').value.trim(),
+      hotelPhone: document.getElementById('hotelPhone').value.trim(),
+      hotelAddress: document.getElementById('hotelAddress').value.trim(),
+      hotelDesc: document.getElementById('hotelDesc').value.trim(),
+      hotelTags: document.getElementById('hotelTags').value.trim(),
+      hotelRating: parseFloat(document.getElementById('hotelRating').value) || 4.5,
+      reviewCount: parseInt(document.getElementById('reviewCount').value) || 0,
+      checkinTime: document.getElementById('checkinTime').value.trim() || '14:00',
+      checkoutTime: document.getElementById('checkoutTime').value.trim() || '12:00',
+      parking: document.getElementById('parking').value.trim() || '免费',
+      bookingUrl: document.getElementById('bookingUrl').value.trim(),
+      rooms,
+      photos: photoData
+    };
+  }
+
+  function log(msg, type='info') {
+    const el = document.getElementById('statusLog');
+    const span = document.createElement('div');
+    span.className = 'line ' + type;
+    span.textContent = new Date().toLocaleTimeString('zh-CN') + ' ' + msg;
+    el.appendChild(span);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function showStatus() {
+    document.getElementById('statusArea').classList.add('show');
+  }
+
+  async function generate() {
+    const btn = document.getElementById('btnPreview');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>生成中...';
+    showStatus();
+    log('正在生成官网...', 'info');
+
+    const data = collectFormData();
+    if (!data.hotelName || !data.rooms.length) {
+      alert('请填写酒店名称和至少一个房型');
+      btn.disabled = false;
+      btn.textContent = '✨ 开始生成官网';
+      return;
+    }
+
+    try {
+      log('正在调用 AI 生成官网...', 'info');
+      const resp = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await resp.json();
+
+      if (result.success) {
+        log('部署成功！', 'ok');
+        document.getElementById('deployUrl').href = result.url;
+        document.getElementById('deployUrl').textContent = result.url;
+        document.getElementById('deploySection').classList.add('show');
+        btn.textContent = '✅ 生成完成';
+        // Scroll to deploy section
+        document.getElementById('deploySection').scrollIntoView({ behavior: 'smooth' });
+      } else {
+        log('生成失败: ' + result.message, 'err');
+        btn.disabled = false;
+        btn.textContent = '✨ 开始生成官网';
+      }
+    } catch(e) {
+      log('请求失败: ' + e.message, 'err');
+      btn.disabled = false;
+      btn.textContent = '✨ 开始生成官网';
+    }
+  }
+
+  function copyUrl() {
+    const url = document.getElementById('deployUrl').href;
+    navigator.clipboard.writeText(url).then(() => alert('链接已复制！'));
+  }
+
+  function redeploy() {
+    document.getElementById('deploySection').classList.remove('show');
+    document.getElementById('btnPreview').disabled = false;
+    document.getElementById('btnPreview').textContent = '✨ 开始生成官网';
+    document.getElementById('statusLog').innerHTML = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
