@@ -240,7 +240,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
 </html>`;
 }
 
-// 部署到 Cloudflare Pages (Direct Upload API)
+// 部署到 Cloudflare Pages (Direct Upload via multipart/form-data)
 async function deployToPages(accountId, token, projectName, htmlContent) {
   // 1. Create project (ignore if already exists)
   try {
@@ -254,26 +254,45 @@ async function deployToPages(accountId, token, projectName, htmlContent) {
     );
   } catch(e) { /* ignore */ }
 
-  // 2. Upload via Direct Upload — JSON body with base64-encoded content
+  // 2. Build multipart/form-data manually with proper content-disposition
+  // CF expects: a JSON "manifest" part (application/json) describing files,
+  // followed by file content parts (matching the manifest entries)
+  const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
   const b64Content = btoa(unescape(encodeURIComponent(htmlContent)));
+  const manifest = JSON.stringify([
+    { fileName: '/index.html', content: b64Content, contentType: 'text/html; charset=utf-8' }
+  ]);
+
+  // Build multipart body
+  const parts = [];
+  // Manifest part
+  parts.push(`--${boundary}\r\n`);
+  parts.push(`Content-Disposition: form-data; name="manifest"\r\n`);
+  parts.push(`Content-Type: application/json\r\n\r\n`);
+  parts.push(manifest + '\r\n');
+  // Index.html part (also include as form file for compatibility)
+  parts.push(`--${boundary}\r\n`);
+  parts.push(`Content-Disposition: form-data; name="/index.html"\r\n`);
+  parts.push(`Content-Type: text/html; charset=utf-8\r\n\r\n`);
+  parts.push(htmlContent + '\r\n');
+  parts.push(`--${boundary}--\r\n`);
+  const body = parts.join('');
+
   const uploadResp = await fetch(
     'https://api.cloudflare.com/client/v4/accounts/' + accountId + '/pages/projects/' + projectName + '/deployments',
     {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        manifest: [{
-          filePath: '/index.html',
-          content: b64Content,
-          type: 'data'  // 'data' means base64-encoded
-        }]
-      })
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'multipart/form-data; boundary=' + boundary
+      },
+      body: body
     }
   );
 
   if (!uploadResp.ok) {
     const errText = await uploadResp.text();
-    return { success: false, message: 'HTTP ' + uploadResp.status + ': ' + errText.slice(0, 300) };
+    return { success: false, message: 'HTTP ' + uploadResp.status + ': ' + errText.slice(0, 500) };
   }
   const uploadResult = await uploadResp.json();
 
