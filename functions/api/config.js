@@ -39,13 +39,13 @@ async function resolveHotel(env, request) {
   }
 
   // 按 slug 查找
-  const hotel = await env.DB.prepare('SELECT * FROM hotels WHERE slug = ? AND active = 1').first();
+  const hotel = await env.DB.prepare('SELECT * FROM hotels WHERE slug = ? AND active = 1').bind(slug).first();
   if (hotel) return { hotelId: hotel.id, hotel, slug };
 
   // 兼容：如果是数字，尝试按 id 查找
   const id = parseInt(slug);
   if (!isNaN(id)) {
-    const byId = await env.DB.prepare('SELECT * FROM hotels WHERE id = ? AND active = 1').first();
+    const byId = await env.DB.prepare('SELECT * FROM hotels WHERE id = ? AND active = 1').bind(id).first();
     if (byId) return { hotelId: byId.id, hotel: byId, slug: byId.slug };
   }
 

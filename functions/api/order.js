@@ -45,7 +45,7 @@ async function resolveHotelId(env, request) {
         if (!hotelId) {
           const slug = refUrl.searchParams.get('hotel');
           if (slug) {
-            const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE slug = ?').first();
+            const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE slug = ?').bind(slug).first();
             if (hotel) hotelId = hotel.id;
           }
         }
