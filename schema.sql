@@ -106,3 +106,19 @@ CREATE INDEX IF NOT EXISTS idx_orders_checkout ON orders(checkout);
 CREATE INDEX IF NOT EXISTS idx_orders_hotel_id ON orders(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_coupon_claims_hotel_id ON coupon_claims(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_hotels_slug ON hotels(slug);
+CREATE INDEX IF NOT EXISTS idx_hotel_accounts_account ON hotel_accounts(account);
+CREATE INDEX IF NOT EXISTS idx_hotel_accounts_hotel_id ON hotel_accounts(hotel_id);
+
+-- 酒店员工账号表
+CREATE TABLE IF NOT EXISTS hotel_accounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hotel_id INTEGER NOT NULL,
+  account TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'staff',
+  name TEXT DEFAULT '',
+  active INTEGER DEFAULT 1,
+  created_at TEXT,
+  updated_at TEXT,
+  FOREIGN KEY (hotel_id) REFERENCES hotels(id)
+);

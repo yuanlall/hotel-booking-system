@@ -25,23 +25,31 @@ function jsonResponse(data, status = 200) {
 }
 
 // 从请求中解析 hotel_id
+// 优先级：Token员工身份 > URL参数 > Header > Referer > 默认
 async function resolveHotelId(env, request) {
+  // 1. 如果是员工账号，强制使用 token 中的 hotelId（数据隔离）
+  const authRole = request.headers.get('X-Auth-Role');
+  const authHotelId = request.headers.get('X-Auth-HotelId');
+  if (authRole === 'hotel' && authHotelId) {
+    return parseInt(authHotelId);
+  }
+
+  // 2. URL 参数
   const url = new URL(request.url);
   let hotelId = url.searchParams.get('hotelId');
 
-  // 从请求头获取
+  // 3. 从请求头获取
   if (!hotelId) {
     hotelId = request.headers.get('X-Hotel-Id');
   }
 
-  // 从 Referer 解析
+  // 4. 从 Referer 解析
   if (!hotelId) {
     const referer = request.headers.get('Referer') || '';
     if (referer) {
       try {
         const refUrl = new URL(referer);
         hotelId = refUrl.searchParams.get('hotelId');
-        // 也支持 hotel slug
         if (!hotelId) {
           const slug = refUrl.searchParams.get('hotel');
           if (slug) {
@@ -53,7 +61,7 @@ async function resolveHotelId(env, request) {
     }
   }
 
-  // 默认返回第一个酒店
+  // 5. 默认返回第一个酒店
   if (!hotelId) {
     const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE active = 1 ORDER BY id ASC LIMIT 1').first();
     return hotel ? hotel.id : 1;

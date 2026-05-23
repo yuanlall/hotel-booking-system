@@ -65,11 +65,23 @@ export async function onRequestGet(context) {
 
   if (!env.DB) return jsonResponse({ success: false, message: '数据库不可用' }, 503);
 
-  // ===== 列出所有酒店（管理后台用） =====
+  // ===== 列出所有酒店（管理后台用，含员工账号信息） =====
   if (action === 'list_hotels') {
     try {
       const result = await env.DB.prepare('SELECT id, slug, name, address, phone, active FROM hotels ORDER BY id ASC').all();
-      return jsonResponse({ success: true, hotels: result.results });
+      // 查询每个酒店的员工账号
+      const hotels = result.results;
+      for (let i = 0; i < hotels.length; i++) {
+        try {
+          const account = await env.DB.prepare('SELECT account, password FROM hotel_accounts WHERE hotel_id = ? AND active = 1 LIMIT 1').bind(hotels[i].id).first();
+          hotels[i].staffAccount = account ? account.account : '';
+          hotels[i].staffPassword = account ? account.password : '';
+        } catch(e) {
+          hotels[i].staffAccount = '';
+          hotels[i].staffPassword = '';
+        }
+      }
+      return jsonResponse({ success: true, hotels });
     } catch(e) {
       return jsonResponse({ success: false, message: '查询失败' }, 500);
     }
@@ -149,10 +161,17 @@ export async function onRequestGet(context) {
         'CREATE TABLE IF NOT EXISTS coupon_claims (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER NOT NULL DEFAULT 1, phone TEXT NOT NULL, coupon_id TEXT NOT NULL, coupon_name TEXT, amount INTEGER DEFAULT 0, condition_amount INTEGER DEFAULT 0, expire_at TEXT, used INTEGER DEFAULT 0, used_order_id TEXT, used_at TEXT, source TEXT DEFAULT \'self\', referrer_of_phone TEXT, created_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id))'
       );
 
+      // 6. hotel_accounts 表（酒店员工账号）
+      await env.DB.exec(
+        'CREATE TABLE IF NOT EXISTS hotel_accounts (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER NOT NULL, account TEXT UNIQUE NOT NULL, password TEXT NOT NULL, role TEXT DEFAULT \'staff\', name TEXT DEFAULT \'\', active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id))'
+      );
+
       // 索引
       try { await env.DB.exec('CREATE INDEX IF NOT EXISTS idx_orders_hotel_id ON orders(hotel_id)'); } catch(e) {}
       try { await env.DB.exec('CREATE INDEX IF NOT EXISTS idx_coupon_claims_hotel_id ON coupon_claims(hotel_id)'); } catch(e) {}
       try { await env.DB.exec('CREATE INDEX IF NOT EXISTS idx_hotels_slug ON hotels(slug)'); } catch(e) {}
+      try { await env.DB.exec('CREATE INDEX IF NOT EXISTS idx_hotel_accounts_account ON hotel_accounts(account)'); } catch(e) {}
+      try { await env.DB.exec('CREATE INDEX IF NOT EXISTS idx_hotel_accounts_hotel_id ON hotel_accounts(hotel_id)'); } catch(e) {}
 
       // 为旧表补充新列（兼容升级）
       try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN slug TEXT'); } catch(e) {}
@@ -204,12 +223,31 @@ export async function onRequestGet(context) {
             'INSERT INTO coupon_templates (hotel_id, coupon_id, name, amount, condition_amount, expire_days, description, max_claim_per_user, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
           ).bind(hotelId, c.coupon_id, c.name, c.amount, c.condition, c.days, c.desc, c.max, 'active', now).run();
         }
+
+        // 创建香江国际员工账号
+        try {
+          await env.DB.prepare(
+            'INSERT INTO hotel_accounts (hotel_id, account, password, role, name, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+          ).bind(hotelId, 'xiangjiang_intl', 'hotel0001', 'staff', '香江国际前台', 1, now, now).run();
+        } catch(e) { console.log('Seed account exists:', e.message); }
       } else {
         // 已有数据：为旧记录补充 slug
         const noSlug = await env.DB.prepare('SELECT id, name FROM hotels WHERE slug IS NULL OR slug = \'\'').all();
         for (const h of noSlug.results) {
           const slug = generateSlug(h.name) + '-' + h.id;
           await env.DB.prepare('UPDATE hotels SET slug = ? WHERE id = ?').bind(slug, h.id).run();
+        }
+
+        // 为已有酒店补充员工账号
+        const hotelsWithoutAccount = await env.DB.prepare('SELECT h.id, h.slug, h.name FROM hotels h LEFT JOIN hotel_accounts a ON h.id = a.hotel_id WHERE a.id IS NULL AND h.active = 1').all();
+        for (const h of hotelsWithoutAccount.results) {
+          const account = (h.slug || generateSlug(h.name)).replace(/-/g, '_');
+          const password = 'hotel' + h.id.toString().slice(-4).padStart(4, '0');
+          try {
+            await env.DB.prepare(
+              'INSERT INTO hotel_accounts (hotel_id, account, password, role, name, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+            ).bind(h.id, account, password, 'staff', h.name + ' 前台', 1, new Date().toISOString(), new Date().toISOString()).run();
+          } catch(e) { console.log('Account already exists for', h.name); }
         }
       }
 
@@ -362,11 +400,26 @@ export async function onRequestPost(context) {
       const bookingBaseUrl = body.bookingUrl || '';
       const bookingLink = bookingBaseUrl ? `${bookingBaseUrl}?hotel=${slug}` : `?hotel=${slug}`;
 
+      // 创建酒店员工账号（默认账号=slug，密码=hotel+id后4位）
+      const defaultPassword = 'hotel' + hotel.id.toString().slice(-4).padStart(4, '0');
+      const staffAccount = slug.replace(/-/g, '_');
+      try {
+        await env.DB.prepare(
+          'INSERT INTO hotel_accounts (hotel_id, account, password, role, name, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        ).bind(hotel.id, staffAccount, defaultPassword, 'staff', name + ' 前台', 1, now, now).run();
+      } catch(e) {
+        // hotel_accounts 表可能不存在，init 后重试
+        console.log('hotel_accounts insert failed:', e.message);
+      }
+
       return jsonResponse({
         success: true,
         hotelId: hotel.id,
         slug,
         bookingLink,
+        staffAccount,
+        staffPassword: defaultPassword,
+        staffLoginUrl: bookingBaseUrl ? `${bookingBaseUrl}/staff?hotel=${slug}` : `/staff?hotel=${slug}`,
         message: '酒店创建成功'
       });
     }

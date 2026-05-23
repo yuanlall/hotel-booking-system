@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>酒店管理后台</title>
+    <title>酒店接单后台</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; background: #f0f2f5; color: #333; }
@@ -27,6 +27,7 @@
         .login-logo-icon { font-size: 52px; margin-bottom: 10px; }
         .login-logo h2 { font-size: 22px; color: #333; }
         .login-logo p { font-size: 13px; color: #999; margin-top: 4px; }
+        .login-role-badge { display: inline-block; background: #e6f7ff; color: #1890ff; font-size: 11px; padding: 2px 10px; border-radius: 10px; margin-top: 6px; }
         .login-field { margin-bottom: 16px; }
         .login-field label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; font-weight: 500; }
         .login-input {
@@ -230,7 +231,7 @@
     <div class="login-card">
         <div class="login-logo">
             <div class="login-logo-icon">🏨</div>
-            <h2>酒店管理后台</h2>
+            <h2>酒店接单后台</h2>
             <p>请输入账号密码登录</p>
         </div>
         <div class="login-field">
@@ -252,21 +253,15 @@
 
     <div class="header">
         <div>
-            <h1>🏨 酒店管理后台</h1>
-            <p id="hotelNameHeader">实时订单管理 · 房态自动同步</p>
-            <!-- 酒店选择器 -->
-            <div id="hotelSelector" style="margin-top:8px;display:none">
-                <select id="hotelSelect" onchange="switchHotel(this.value)" style="padding:6px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:#fff;font-size:13px;outline:none;cursor:pointer;min-width:200px">
-                    <option value="">加载中...</option>
-                </select>
-            </div>
+            <h1 id="staffHeader">🏨 接单后台</h1>
+            <p id="hotelNameHeader"><span id="staffHotelName"></span>实时订单管理 · 房态自动同步</p>
         </div>
         <button class="logout-btn" onclick="doLogout()">退出登录</button>
         <!-- Tab 导航 -->
         <div class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('orders')">📋 订单管理</button>
             <button class="tab-btn" onclick="switchTab('config')">⚙️ 配置管理</button>
-            <button class="tab-btn" onclick="switchTab('hotels')">🏨 酒店管理</button>
+            
         </div>
     </div>
 
@@ -342,20 +337,6 @@
 
     <!-- ==================== TAB2: 配置管理 ==================== -->
     <div class="tab-content" id="tab-config" style="padding:12px 8px;">
-
-        <!-- 专属链接（重要！） -->
-        <div class="section" style="border-left:4px solid #ff6b35;margin-bottom:12px">
-            <div class="section-title">🔗 您的专属链接</div>
-            <div style="margin-bottom:8px">
-                <div style="font-size:12px;color:#888;margin-bottom:4px">📱 客户预订页（分享给客户）</div>
-                <div style="background:#f8fafc;padding:8px 12px;border-radius:8px;font-size:13px;word-break:break-all;border:1px solid #e2e8f0;display:flex;align-items:center;gap:8px" id="cfgBookingLink">加载中...</div>
-            </div>
-            <div style="margin-bottom:8px">
-                <div style="font-size:12px;color:#888;margin-bottom:4px">📋 接单后台（转交给酒店前台，用于接单、看房态、改配置）</div>
-                <div style="background:#f8fafc;padding:8px 12px;border-radius:8px;font-size:13px;word-break:break-all;border:1px solid #e2e8f0;display:flex;align-items:center;gap:8px" id="cfgAdminLink">加载中...</div>
-            </div>
-            <button style="width:100%;padding:10px;border:1.5px dashed #ff6b35;border-radius:8px;background:#fff7e6;color:#d46b08;font-size:13px;cursor:pointer;font-weight:600" onclick="copyLinks()">📋 复制两个链接</button>
-        </div>
 
         <!-- 酒店信息 -->
         <div class="cfg-section">
@@ -451,74 +432,6 @@
             </div>
         </div>
     </div>
-
-    <!-- ==================== TAB3: 酒店管理 ==================== -->
-    <div class="tab-content" id="tab-hotels" style="padding:12px 8px;">
-
-        <!-- 新建酒店 -->
-        <div class="section" style="border:2px dashed #ff6b35;position:relative;">
-            <div class="section-title">➕ 新建酒店</div>
-            <p style="font-size:12px;color:#888;margin-bottom:12px;">填写酒店信息后自动创建专属预订页和管理后台</p>
-            <div class="cfg-field">
-                <div class="cfg-label">酒店名称 *</div>
-                <input type="text" class="cfg-input" id="newHotelName" placeholder="如：赣州香江国际酒店">
-            </div>
-            <div class="cfg-row">
-                <div class="cfg-field">
-                    <div class="cfg-label">地址</div>
-                    <input type="text" class="cfg-input" id="newHotelAddr" placeholder="省市区+街道+门牌号">
-                </div>
-            </div>
-            <div class="cfg-row">
-                <div class="cfg-field">
-                    <div class="cfg-label">电话</div>
-                    <input type="text" class="cfg-input" id="newHotelPhone" placeholder="0797-8681517">
-                </div>
-                <div class="cfg-field">
-                    <div class="cfg-label">评分</div>
-                    <input type="number" class="cfg-input" id="newHotelRating" value="4.5" step="0.1" min="0" max="5" style="width:80px">
-                </div>
-            </div>
-            <div class="cfg-field">
-                <div class="cfg-label">特色标签（逗号分隔）</div>
-                <input type="text" class="cfg-input" id="newHotelTags" placeholder="官方直营,免费停车,含早餐">
-            </div>
-            <div class="cfg-field">
-                <div class="cfg-label">简介</div>
-                <textarea class="cfg-textarea" id="newHotelDesc" placeholder="一句话介绍酒店特色" rows="2"></textarea>
-            </div>
-            <!-- 默认房型 -->
-            <div class="section-title" style="margin-top:12px;">🛏️ 默认房型（创建后可在配置管理中修改）</div>
-            <div id="newHotelRooms">
-                <div class="cfg-card" style="margin-bottom:8px">
-                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                        <input type="text" class="cfg-input" placeholder="房型名称" id="newRoom1Name" value="标准间" style="flex:1;min-width:80px">
-                        <input type="number" class="cfg-input" placeholder="价格" id="newRoom1Price" value="279" style="width:80px">
-                        <span style="font-size:12px;color:#999">元/晚</span>
-                        <input type="number" class="cfg-input" placeholder="房间数" id="newRoom1Stock" value="5" style="width:60px">
-                        <span style="font-size:12px;color:#999">间</span>
-                    </div>
-                </div>
-                <div class="cfg-card" style="margin-bottom:8px">
-                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                        <input type="text" class="cfg-input" placeholder="房型名称" id="newRoom2Name" value="大床房" style="flex:1;min-width:80px">
-                        <input type="number" class="cfg-input" placeholder="价格" id="newRoom2Price" value="328" style="width:80px">
-                        <span style="font-size:12px;color:#999">元/晚</span>
-                        <input type="number" class="cfg-input" placeholder="房间数" id="newRoom2Stock" value="3" style="width:60px">
-                        <span style="font-size:12px;color:#999">间</span>
-                    </div>
-                </div>
-            </div>
-            <button class="cfg-save-btn" style="margin-top:8px;width:100%" onclick="createNewHotel()">✨ 创建酒店</button>
-        </div>
-
-        <!-- 已有酒店列表 -->
-        <div class="section">
-            <div class="section-title">📋 已有酒店</div>
-            <div id="hotelListArea">加载中...</div>
-        </div>
-    </div>
-
 </div><!-- /main-app -->
 
 <script>
@@ -541,7 +454,7 @@ async function doLogin() {
     }
 
     try {
-        const res = await fetch('/api/auth', {
+        const res = await fetch('/api/staff-auth', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ account: acc, password: pwd })
@@ -638,13 +551,11 @@ document.head.appendChild(shakeStyle);
 
 function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-        btn.classList.toggle('active', (tab === 'orders' && i === 0) || (tab === 'config' && i === 1) || (tab === 'hotels' && i === 2));
+        btn.classList.toggle('active', (tab === 'orders' && i === 0) || (tab === 'config' && i === 1));
     });
     document.getElementById('tab-orders').classList.toggle('active', tab === 'orders');
     document.getElementById('tab-config').classList.toggle('active', tab === 'config');
-    document.getElementById('tab-hotels').classList.toggle('active', tab === 'hotels');
     if (tab === 'config') loadConfig();
-    if (tab === 'hotels') loadHotelListPage();
 }
 
 
@@ -655,46 +566,21 @@ function switchTab(tab) {
 let currentAdminHotelId = null;
 
 async function loadHotelList() {
+    // 员工端：hotel_id 从 token 中获取，通过 /api/staff-auth/me 接口
     try {
-        const res = await fetch('/api/config?action=list_hotels', { headers: getAuthHeaders() });
+        const res = await fetch('/api/staff-auth?action=me', { headers: getAuthHeaders() });
         const data = await res.json();
-        if (data.success && data.hotels && data.hotels.length > 1) {
-            const sel = document.getElementById('hotelSelect');
-            sel.innerHTML = '';
-            data.hotels.forEach(h => {
-                const opt = document.createElement('option');
-                opt.value = h.id;
-                opt.textContent = h.name + (h.active ? '' : ' (停用)');
-                sel.appendChild(opt);
-            });
-            document.getElementById('hotelSelector').style.display = 'block';
-            // 默认选第一个
-            currentAdminHotelId = data.hotels[0].id;
-
-            // 如果URL带 ?hotel=slug 参数，自动选中对应酒店
-            const urlSlug = new URLSearchParams(location.search).get('hotel');
-            if (urlSlug) {
-                const match = data.hotels.find(h => h.slug === urlSlug);
-                if (match) {
-                    currentAdminHotelId = match.id;
-                    sel.value = match.id;
-                }
-            }
-        } else {
-            // 只有一个酒店，不需要切换
-            currentAdminHotelId = data.hotels && data.hotels[0] ? data.hotels[0].id : 1;
+        if (data.success && data.hotelId) {
+            currentAdminHotelId = data.hotelId;
+            document.getElementById('staffHotelName').textContent = data.hotelName || '';
+            document.getElementById('staffHeader').textContent = '🏨 ' + (data.hotelName || '接单后台');
         }
     } catch(e) {
-        currentAdminHotelId = 1;
+        console.error('Failed to get staff info:', e);
     }
 }
 
-function switchHotel(hotelId) {
-    currentAdminHotelId = parseInt(hotelId);
-    // 重新加载配置和订单
-    loadConfig();
-    loadOrders();
-}
+
 
 // ============================================================
 //  📊 订单管理（Tab1）
@@ -1227,123 +1113,6 @@ async function saveCfgModal() {
             else { showToast('❌ ' + (d.message || '保存失败，可能优惠券ID已存在')); }
         } catch(e) { showToast('❌ 网络错误'); }
     }
-}
-
-// ============================================================
-//  🏨 酒店管理（Tab3）
-// ============================================================
-
-async function loadHotelListPage() {
-    try {
-        const res = await fetch('/api/config?action=list_hotels', { headers: getAuthHeaders() });
-        const data = await res.json();
-        const el = document.getElementById('hotelListArea');
-        if (!data.success || !data.hotels || data.hotels.length === 0) {
-            el.innerHTML = '<div style="text-align:center;padding:20px;color:#999;font-size:13px">暂无酒店</div>';
-            return;
-        }
-        const base = window.location.origin;
-        el.innerHTML = data.hotels.map(h => `
-            <div class="cfg-card" style="margin-bottom:10px">
-                <div class="cfg-card-header">
-                    <span>
-                        <span class="cfg-card-name">${h.name}</span>
-                        <span style="font-size:11px;color:#888;margin-left:6px">${h.slug || ''}</span>
-                        ${h.active ? '<span style="color:#52c41a;font-size:11px;margin-left:4px">✅ 运营中</span>' : '<span style="color:#ff4d4f;font-size:11px;margin-left:4px">⏸️ 已停用</span>'}
-                    </span>
-                </div>
-                <div style="font-size:12px;color:#666;margin-bottom:6px">${h.address || '未设置地址'} · ${h.phone || '未设置电话'}</div>
-                <div style="font-size:11px;margin-bottom:6px;padding:6px 8px;background:#fafafa;border-radius:6px">
-                    🔑 接单账号：<code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">${h.staffAccount || h.slug}</code> / <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px">${h.staffPassword || '***'}</code>
-                </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px">
-                    <a href="${base}/?hotel=${h.slug}" target="_blank" style="color:#1890ff;text-decoration:none">📱 预订页</a>
-                    <a href="${base}/staff?hotel=${h.slug}" target="_blank" style="color:#1890ff;text-decoration:none">📋 接单后台</a>
-                    <button onclick="switchToHotel(${h.id})" style="background:none;border:none;color:#ff6b35;cursor:pointer;font-size:11px;padding:0">🔄 切换到这家</button>
-                </div>
-            </div>
-        `).join('');
-    } catch(e) {
-        document.getElementById('hotelListArea').innerHTML = '<div style="color:#ff4d4f;font-size:13px">加载失败</div>';
-    }
-}
-
-function switchToHotel(hotelId) {
-    currentAdminHotelId = hotelId;
-    const sel = document.getElementById('hotelSelect');
-    if (sel) sel.value = hotelId;
-    switchTab('orders');
-    loadOrders();
-    loadConfig();
-    showToast('✅ 已切换酒店');
-}
-
-async function createNewHotel() {
-    const name = document.getElementById('newHotelName').value.trim();
-    if (!name) { showToast('❌ 请输入酒店名称'); return; }
-
-    const rooms = [];
-    for (let i = 1; i <= 2; i++) {
-        const rName = document.getElementById(`newRoom${i}Name`).value.trim();
-        const rPrice = parseInt(document.getElementById(`newRoom${i}Price`).value) || 0;
-        const rStock = parseInt(document.getElementById(`newRoom${i}Stock`).value) || 1;
-        if (rName) rooms.push({ id: `room${i}`, name: rName, price: rPrice, stock: rStock });
-    }
-
-    const body = {
-        action: 'create_hotel',
-        name,
-        address: document.getElementById('newHotelAddr').value.trim(),
-        phone: document.getElementById('newHotelPhone').value.trim(),
-        rating: parseFloat(document.getElementById('newHotelRating').value) || 4.5,
-        tags: document.getElementById('newHotelTags').value.trim(),
-        description: document.getElementById('newHotelDesc').value.trim(),
-        rooms,
-        bookingUrl: window.location.origin
-    };
-
-    try {
-        const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
-        if (res.status === 401) { handleAuthExpired(); return; }
-        const d = await res.json();
-        if (d.success) {
-            const base = window.location.origin;
-            showToast('✅ 酒店创建成功！');
-            // 清空表单
-            document.getElementById('newHotelName').value = '';
-            document.getElementById('newHotelAddr').value = '';
-            document.getElementById('newHotelPhone').value = '';
-            document.getElementById('newHotelTags').value = '';
-            document.getElementById('newHotelDesc').value = '';
-            // 切换到新酒店
-            currentAdminHotelId = d.hotelId;
-            loadHotelListPage();
-            loadHotelList();
-            // 显示成功信息
-            const el = document.getElementById('hotelListArea');
-            el.insertAdjacentHTML('afterbegin', `
-                <div class="cfg-card" style="border:2px solid #52c41a;margin-bottom:10px;background:#f6ffed">
-                    <div class="cfg-card-header"><span class="cfg-card-name">🎉 ${name} 创建成功！</span></div>
-                    <div style="font-size:12px;margin-bottom:6px">
-                        <div>📱 预订页：<a href="${base}/?hotel=${d.slug}" target="_blank" style="color:#1890ff">${base}/?hotel=${d.slug}</a></div>
-                        <div>📋 管理后台：<a href="${base}/admin?hotel=${d.slug}" target="_blank" style="color:#1890ff">${base}/admin?hotel=${d.slug}</a></div>
-                    </div>
-                    <button onclick="switchToHotel(${d.hotelId})" class="cfg-save-btn" style="margin-top:6px">🔄 进入管理</button>
-                </div>
-            `);
-        } else {
-            showToast('❌ ' + (d.message || '创建失败'));
-        }
-    } catch(e) {
-        showToast('❌ 网络错误');
-    }
-}
-
-function copyLinks() {
-    const bookingLink = document.getElementById('cfgBookingLink')?.textContent?.trim();
-    const adminLink = document.getElementById('cfgAdminLink')?.textContent?.trim();
-    const text = `客户预订页：${bookingLink}\n管理后台：${adminLink}`;
-    navigator.clipboard.writeText(text).then(() => showToast('✅ 链接已复制')).catch(() => showToast('❌ 复制失败，请手动复制'));
 }
 </script>
 

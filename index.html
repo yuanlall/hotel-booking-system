@@ -1226,7 +1226,7 @@
 
     <!-- 商家管理入口 -->
     <div style="text-align:center;padding:24px 16px 32px;opacity:0.4;font-size:12px">
-      <a id="adminLink" href="/admin" style="color:inherit;text-decoration:none">商家管理</a>
+      <a id="adminLink" href="/staff" style="color:inherit;text-decoration:none">商家管理</a>
     </div>
 
     <script>
@@ -1235,7 +1235,7 @@
         const slug = new URLSearchParams(location.search).get('hotel');
         if (slug) {
             const link = document.getElementById('adminLink');
-            if (link) link.href = '/admin?hotel=' + slug;
+            if (link) link.href = '/staff?hotel=' + slug;
         }
     })();
     </script>

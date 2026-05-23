@@ -21,14 +21,25 @@ function phoneValid(phone) {
 }
 
 // 从请求中解析 hotel_id
+// 优先级：Token员工身份 > URL参数 > Header > Referer > 默认
 async function resolveHotelId(env, request) {
+  // 1. 如果是员工账号，强制使用 token 中的 hotelId（数据隔离）
+  const authRole = request.headers.get('X-Auth-Role');
+  const authHotelId = request.headers.get('X-Auth-HotelId');
+  if (authRole === 'hotel' && authHotelId) {
+    return parseInt(authHotelId);
+  }
+
+  // 2. URL 参数
   const url = new URL(request.url);
   let hotelId = url.searchParams.get('hotelId');
 
+  // 3. 请求头
   if (!hotelId) {
     hotelId = request.headers.get('X-Hotel-Id');
   }
 
+  // 4. Referer
   if (!hotelId) {
     const referer = request.headers.get('Referer') || '';
     if (referer) {
@@ -46,6 +57,7 @@ async function resolveHotelId(env, request) {
     }
   }
 
+  // 5. 默认
   if (!hotelId) {
     const hotel = await env.DB.prepare('SELECT id FROM hotels WHERE active = 1 ORDER BY id ASC LIMIT 1').first();
     return hotel ? hotel.id : 1;

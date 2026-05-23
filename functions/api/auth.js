@@ -9,39 +9,49 @@ function getSigningKey(env) {
   return env.AUTH_SECRET || 'hotel-booking-auth-2025';
 }
 
-// 简易 HMAC-SHA256 Token
-// 格式: base64(timestamp|account|hmac_sha256(timestamp|account|secret))
+// Token 格式: base64(timestamp|account|platform|0|sigHex)
+// 新格式包含 role 和 hotelId 字段，中间件可区分平台/酒店账号
 async function generateToken(account, env) {
   const key = getSigningKey(env);
   const timestamp = Date.now().toString();
-  const payload = `${timestamp}|${account}`;
+  const payload = `${timestamp}|${account}|platform|0`;
   const encoder = new TextEncoder();
   const cryptoKey = await crypto.subtle.importKey(
     'raw', encoder.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
   );
   const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(payload));
   const sigHex = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
-  // base64(timestamp|account|sigHex)
-  const raw = `${timestamp}|${account}|${sigHex}`;
+  const raw = `${timestamp}|${account}|platform|0|${sigHex}`;
   return btoa(raw);
 }
 
-// 验证 Token，返回 { valid, account } 或 { valid: false }
+// 验证 Token，返回 { valid, account, role, hotelId } 或 { valid: false }
+// 兼容旧版 3段 token 和新版 5段 token
 async function verifyToken(token, env) {
   if (!token) return { valid: false };
   try {
     const raw = atob(token);
     const parts = raw.split('|');
-    if (parts.length !== 3) return { valid: false };
-    const [timestamp, account, sigHex] = parts;
-    const ts = parseInt(timestamp, 10);
+    const isNewFormat = parts.length === 5;
+    const isOldFormat = parts.length === 3;
 
-    // 检查过期
+    if (!isNewFormat && !isOldFormat) return { valid: false };
+
+    let timestamp, account, sigHex, payload, role, hotelId;
+    if (isNewFormat) {
+      [timestamp, account, role, hotelId, sigHex] = parts;
+      payload = `${timestamp}|${account}|${role}|${hotelId}`;
+    } else {
+      [timestamp, account, sigHex] = parts;
+      payload = `${timestamp}|${account}`;
+      role = 'platform';
+      hotelId = null;
+    }
+
+    const ts = parseInt(timestamp, 10);
     if (Date.now() - ts > TOKEN_EXPIRE_MS) return { valid: false, reason: 'expired' };
 
-    // 重新签名验证
     const key = getSigningKey(env);
-    const payload = `${timestamp}|${account}`;
     const encoder = new TextEncoder();
     const cryptoKey = await crypto.subtle.importKey(
       'raw', encoder.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
@@ -51,7 +61,7 @@ async function verifyToken(token, env) {
 
     if (sigHex !== expectedHex) return { valid: false, reason: 'invalid' };
 
-    return { valid: true, account };
+    return { valid: true, account, role: role || 'platform', hotelId: hotelId ? parseInt(hotelId) : null };
   } catch (e) {
     return { valid: false, reason: 'malformed' };
   }

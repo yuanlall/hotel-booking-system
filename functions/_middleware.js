@@ -3,7 +3,8 @@
 
 // 不需要鉴权的路径（面向用户的公开接口）
 const PUBLIC_PATHS = [
-  '/api/auth',          // 登录/验证
+  '/api/auth',          // 平台管理员登录
+  '/api/staff-auth',    // 酒店员工登录
 ];
 
 // 需要鉴权的动作（通过 action 参数区分）
@@ -25,12 +26,22 @@ async function verifyToken(token, env) {
   try {
     const raw = atob(token);
     const parts = raw.split('|');
-    if (parts.length !== 3) return { valid: false };
-    const [timestamp, account, sigHex] = parts;
+    const isNewFormat = parts.length === 5;
+    const isOldFormat = parts.length === 3;
+    if (!isNewFormat && !isOldFormat) return { valid: false };
+    let timestamp, account, sigHex, payload, role, hotelId;
+    if (isNewFormat) {
+      [timestamp, account, role, hotelId, sigHex] = parts;
+      payload = `${timestamp}|${account}|${role}|${hotelId}`;
+    } else {
+      [timestamp, account, sigHex] = parts;
+      payload = `${timestamp}|${account}`;
+      role = 'platform';
+      hotelId = null;
+    }
     const ts = parseInt(timestamp, 10);
     if (Date.now() - ts > TOKEN_EXPIRE_MS) return { valid: false, reason: 'expired' };
     const key = getSigningKey(env);
-    const payload = `${timestamp}|${account}`;
     const encoder = new TextEncoder();
     const cryptoKey = await crypto.subtle.importKey(
       'raw', encoder.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
@@ -38,7 +49,7 @@ async function verifyToken(token, env) {
     const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(payload));
     const expectedHex = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
     if (sigHex !== expectedHex) return { valid: false, reason: 'invalid' };
-    return { valid: true, account };
+    return { valid: true, account, role: role || 'platform', hotelId: hotelId ? parseInt(hotelId) : null };
   } catch (e) {
     return { valid: false, reason: 'malformed' };
   }
@@ -115,9 +126,20 @@ export async function onRequest(context) {
     return jsonResponse({ success: false, message: 'Token 无效', code: 'INVALID_TOKEN' }, 401);
   }
 
-  // 5. 鉴权通过，在请求头中附加 account 信息，放行
+  // 5. 角色权限检查：某些操作仅限平台管理员
+  if (result.role === 'hotel') {
+    // 酒店员工禁止创建/更新酒店信息
+    const hotelOnlyActions = ['create_hotel', 'update_hotel'];
+    if (hotelOnlyActions.includes(action)) {
+      return jsonResponse({ success: false, message: '无权限执行此操作', code: 'FORBIDDEN' }, 403);
+    }
+  }
+
+  // 6. 鉴权通过，在请求头中附加 account + role + hotelId 信息，放行
   const newHeaders = new Headers(request.headers);
   newHeaders.set('X-Auth-Account', result.account);
+  newHeaders.set('X-Auth-Role', result.role || 'platform');
+  if (result.hotelId) newHeaders.set('X-Auth-HotelId', result.hotelId.toString());
   const newRequest = new Request(request, { headers: newHeaders });
 
   return next(newRequest);
