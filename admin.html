@@ -913,10 +913,10 @@ async function loadConfig() {
             const base = window.location.origin;
             if (slug) {
                 document.getElementById('cfgBookingLink').innerHTML = `<span style="flex:1">${base}/?hotel=${slug}</span><button onclick="navigator.clipboard.writeText('${base}/?hotel=${slug}')" style="background:none;border:none;color:#ff6b35;cursor:pointer;font-size:16px">📋</button>`;
-                document.getElementById('cfgAdminLink').innerHTML = `<span style="flex:1">${base}/admin?hotel=${slug}</span><button onclick="navigator.clipboard.writeText('${base}/admin?hotel=${slug}')" style="background:none;border:none;color:#ff6b35;cursor:pointer;font-size:16px">📋</button>`;
+                document.getElementById('cfgAdminLink').innerHTML = `<span style="flex:1">${base}/staff?hotel=${slug}</span><button onclick="navigator.clipboard.writeText('${base}/staff?hotel=${slug}')" style="background:none;border:none;color:#ff6b35;cursor:pointer;font-size:16px">📋</button>`;
             } else {
                 document.getElementById('cfgBookingLink').textContent = base + '/';
-                document.getElementById('cfgAdminLink').textContent = base + '/admin';
+                document.getElementById('cfgAdminLink').textContent = base + '/staff';
             }
         }
     } catch(e) {
@@ -1326,7 +1326,7 @@ async function createNewHotel() {
                     <div class="cfg-card-header"><span class="cfg-card-name">🎉 ${name} 创建成功！</span></div>
                     <div style="font-size:12px;margin-bottom:6px">
                         <div>📱 预订页：<a href="${base}/?hotel=${d.slug}" target="_blank" style="color:#1890ff">${base}/?hotel=${d.slug}</a></div>
-                        <div>📋 管理后台：<a href="${base}/admin?hotel=${d.slug}" target="_blank" style="color:#1890ff">${base}/admin?hotel=${d.slug}</a></div>
+                        <div>📋 接单后台：<a href="${base}/staff?hotel=${d.slug}" target="_blank" style="color:#1890ff">${base}/staff?hotel=${d.slug}</a></div>
                     </div>
                     <button onclick="switchToHotel(${d.hotelId})" class="cfg-save-btn" style="margin-top:6px">🔄 进入管理</button>
                 </div>
@@ -1342,7 +1342,7 @@ async function createNewHotel() {
 function copyLinks() {
     const bookingLink = document.getElementById('cfgBookingLink')?.textContent?.trim();
     const adminLink = document.getElementById('cfgAdminLink')?.textContent?.trim();
-    const text = `客户预订页：${bookingLink}\n管理后台：${adminLink}`;
+    const text = `客户预订页：${bookingLink}\n接单后台：${adminLink}`;
     navigator.clipboard.writeText(text).then(() => showToast('✅ 链接已复制')).catch(() => showToast('❌ 复制失败，请手动复制'));
 }
 </script>
