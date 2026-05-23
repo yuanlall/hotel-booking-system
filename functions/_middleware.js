@@ -11,7 +11,7 @@ const PUBLIC_PATHS = [
 const PROTECTED_ACTIONS = {
   '/api/order': { GET: ['list'], POST: ['updateStatus'] },
   '/api/coupon': { GET: ['init'] },
-  '/api/config': { POST: ['update_hotel', 'update_room', 'update_coupon', 'create_hotel'] }
+  '/api/config': { POST: ['update_hotel', 'update_room', 'update_coupon', 'delete_room', 'delete_coupon', 'create_hotel'] }
 };
 
 // ========== 鉴权核心逻辑（内联，因为 Pages Function 不支持跨文件 import） ==========
@@ -128,9 +128,9 @@ export async function onRequest(context) {
 
   // 5. 角色权限检查：某些操作仅限平台管理员
   if (result.role === 'hotel') {
-    // 酒店员工禁止创建/更新酒店信息
-    const hotelOnlyActions = ['create_hotel', 'update_hotel'];
-    if (hotelOnlyActions.includes(action)) {
+    // 酒店员工禁止创建新酒店
+    const platformOnlyActions = ['create_hotel'];
+    if (platformOnlyActions.includes(action)) {
       return jsonResponse({ success: false, message: '无权限执行此操作', code: 'FORBIDDEN' }, 403);
     }
   }

@@ -933,11 +933,11 @@ function buildRoomFormHTML() {
 
 async function deleteRoom(index) {
     const r = configData.rooms[index];
-    if (!confirm(`确定删除房型「${r.name}」吗？\n删除后该房型将不再显示在前端。`)) return;
+    if (!confirm(`确定删除房型「${r.name}」吗？\n删除后该房型将不再显示。`)) return;
     try {
         const res = await fetch('/api/config', {
             method: 'POST', headers: getAuthHeaders(),
-            body: JSON.stringify({ action: 'update_room', hotelId: currentAdminHotelId, room_id: r.id, status: 'inactive' })
+            body: JSON.stringify({ action: 'delete_room', hotelId: currentAdminHotelId, room_id: r.id })
         });
         if (res.status === 401) { handleAuthExpired(); return; }
         const d = await res.json();
@@ -1032,7 +1032,7 @@ async function deleteCoupon(index) {
     try {
         const res = await fetch('/api/config', {
             method: 'POST', headers: getAuthHeaders(),
-            body: JSON.stringify({ action: 'update_coupon', hotelId: currentAdminHotelId, coupon_id: c.id, status: 'inactive' })
+            body: JSON.stringify({ action: 'delete_coupon', hotelId: currentAdminHotelId, coupon_id: c.id })
         });
         if (res.status === 401) { handleAuthExpired(); return; }
         const d = await res.json();

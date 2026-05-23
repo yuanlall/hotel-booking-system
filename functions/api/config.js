@@ -498,6 +498,34 @@ export async function onRequestPost(context) {
       return jsonResponse({ success: true, message: '优惠券模板已保存' });
     }
 
+    // ===== 删除房型 =====
+    if (body.action === 'delete_room') {
+      if (!body.room_id) return jsonResponse({ success: false, message: '缺少 room_id' }, 400);
+      const hotelId = body.hotelId;
+      if (!hotelId) return jsonResponse({ success: false, message: '缺少 hotelId' }, 400);
+
+      // 先检查是否有已确认订单引用此房型
+      const orderCheck = await env.DB.prepare('SELECT COUNT(*) as cnt FROM orders WHERE hotel_id = ? AND room_name = ? AND status IN (\'confirmed\', \'pending\')').bind(hotelId, body.room_id).first();
+      if (orderCheck && orderCheck.cnt > 0) {
+        return jsonResponse({ success: false, message: `该房型有 ${orderCheck.cnt} 个关联订单，无法删除` }, 400);
+      }
+
+      await env.DB.prepare('DELETE FROM rooms WHERE room_id = ? AND hotel_id = ?').bind(body.room_id, hotelId).run();
+      return jsonResponse({ success: true, message: '房型已删除' });
+    }
+
+    // ===== 删除优惠券模板 =====
+    if (body.action === 'delete_coupon') {
+      if (!body.coupon_id) return jsonResponse({ success: false, message: '缺少 coupon_id' }, 400);
+      const hotelId = body.hotelId;
+      if (!hotelId) return jsonResponse({ success: false, message: '缺少 hotelId' }, 400);
+
+      await env.DB.prepare('DELETE FROM coupon_templates WHERE coupon_id = ? AND hotel_id = ?').bind(body.coupon_id, hotelId).run();
+      // 同时清理已领取记录
+      try { await env.DB.prepare('DELETE FROM coupon_claims WHERE coupon_id = ? AND hotel_id = ?').bind(body.coupon_id, hotelId).run(); } catch(e) {}
+      return jsonResponse({ success: true, message: '优惠券模板已删除' });
+    }
+
     return jsonResponse({ success: false, message: '未知操作: ' + (body.action || '') }, 400);
 
   } catch (e) {
