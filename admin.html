@@ -585,6 +585,16 @@ async function loadHotelList() {
             document.getElementById('hotelSelector').style.display = 'block';
             // 默认选第一个
             currentAdminHotelId = data.hotels[0].id;
+
+            // 如果URL带 ?hotel=slug 参数，自动选中对应酒店
+            const urlSlug = new URLSearchParams(location.search).get('hotel');
+            if (urlSlug) {
+                const match = data.hotels.find(h => h.slug === urlSlug);
+                if (match) {
+                    currentAdminHotelId = match.id;
+                    sel.value = match.id;
+                }
+            }
         } else {
             // 只有一个酒店，不需要切换
             currentAdminHotelId = data.hotels && data.hotels[0] ? data.hotels[0].id : 1;
