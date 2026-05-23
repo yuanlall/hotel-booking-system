@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>香江国际酒店 - 微信预订</title>
-    <meta name="description" content="赣州章贡区精品商务酒店，¥279起/晚，0佣金直接预订，会员立减">
+    <title>酒店预订</title>
+    <meta name="description" content="官方直营0佣金预订，会员立减">
     <meta name="format-detection" content="telephone=no">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -445,18 +445,12 @@
         // ========== 酒店配置数据 ==========
         // 默认硬编码配置（API 不可用时 fallback）
         const DEFAULT_HOTEL = {
-            name: '香江国际酒店',
-            address: '赣州市章贡区长冈路13号达芬奇国际中心9栋',
-            phone: '07978681517',
-            rating: 4.8,
-            reviewCount: 328,
-            tags: [
-                { text: '官方直营', type: 'orange' },
-                { text: '近博物馆', type: '' },
-                { text: '免费停车', type: '' },
-                { text: '含早餐', type: '' },
-                { text: '新装修', type: '' }
-            ],
+            name: '酒店',
+            address: '',
+            phone: '',
+            rating: 4.5,
+            reviewCount: 0,
+            tags: [],
             photos: [
                 'assets/photo-grid-1.jpg',
                 'assets/photo-grid-2.jpg',
@@ -464,22 +458,9 @@
                 'assets/photo-grid-4.jpg',
                 'assets/photo-grid-5.jpg'
             ],
-            rooms: [
-                { id: 'standard', name: '标准双床房', price: 279, features: ['30m²', '双床1.2m', '免费WiFi', '含早'], stock: 8 },
-                { id: 'king', name: '豪华大床房', price: 328, features: ['28m²', '大床1.8m', '免费WiFi', '含早'], stock: 5 },
-                { id: 'suite', name: '行政套房', price: 588, features: ['45m²', '大床2.0m', '客厅', '含早'], stock: 2 }
-            ],
-            reviews: [
-                { name: '张**', avatar: '张', stars: 5, text: '位置很好，去博物馆走路就到。房间干净，前台态度好。比携程便宜，下次还来！', date: '2026-05-10', tags: ['位置好', '干净'] },
-                { name: '李*明', avatar: '李', stars: 5, text: '第二次住了，免费停车超赞。房间大，床很舒服。强烈推荐大床房！', date: '2026-05-08', tags: ['停车方便', '床舒服'] },
-                { name: '王女士', avatar: '王', stars: 4, text: '整体不错，早餐能接受。下次来赣州还住这里，直接订方便。', date: '2026-05-03', tags: ['早餐不错'] },
-                { name: '陈先生', avatar: '陈', stars: 5, text: '出差住的，离博物馆很近。老板人好帮忙拿行李。以后来赣州就这家了。', date: '2026-04-28', tags: ['交通方便', '服务好'] }
-            ],
-            coupons: [
-                { id: 'new', name: '新客专享', amount: 30, condition: 200, desc: '满200减30', expire: 7 },
-                { id: 'share', name: '分享立减', amount: 50, condition: 300, desc: '满300减50', expire: 7 },
-                { id: 'return', name: '回头客', amount: 40, condition: 250, desc: '满250减40', expire: 14 }
-            ]
+            rooms: [],
+            reviews: [],
+            coupons: []
         };
 
         // 运行时 HOTEL 对象（会被 API 数据覆盖）
@@ -518,6 +499,8 @@
                         if (cfg.hotel.tags && cfg.hotel.tags.length) {
                             HOTEL.tags = cfg.hotel.tags.map((t, i) => ({ text: t, type: i === 0 ? 'orange' : '' }));
                         }
+                        // 动态设置页面标题
+                        document.title = cfg.hotel.name + ' - 微信预订';
                     }
                     // 保存 hotelId 用于后续 API 调用
                     if (data.hotelId) currentHotelId = data.hotelId;
@@ -1241,9 +1224,20 @@
         }
     </script>
 
-    <!-- 商家管理入口（不显眼） -->
+    <!-- 商家管理入口 -->
     <div style="text-align:center;padding:24px 16px 32px;opacity:0.4;font-size:12px">
-      <a href="/admin" style="color:inherit;text-decoration:none">商家管理</a>
+      <a id="adminLink" href="/admin" style="color:inherit;text-decoration:none">商家管理</a>
     </div>
+
+    <script>
+    // 动态设置管理后台链接（带hotel参数）
+    (function() {
+        const slug = new URLSearchParams(location.search).get('hotel');
+        if (slug) {
+            const link = document.getElementById('adminLink');
+            if (link) link.href = '/admin?hotel=' + slug;
+        }
+    })();
+    </script>
 </body>
 </html>
