@@ -152,14 +152,14 @@ export async function onRequestGet(context) {
         'CREATE TABLE IF NOT EXISTS hotels (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL, address TEXT, phone TEXT, rating REAL DEFAULT 4.5, review_count INTEGER DEFAULT 0, tags TEXT, description TEXT, checkin_time TEXT DEFAULT \'14:00\', checkout_time TEXT DEFAULT \'12:00\', parking TEXT DEFAULT \'免费\', active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)'
       );
 
-      // 2. rooms 表（已有 hotel_id）
+      // 2. rooms 表（复合唯一键 hotel_id + room_id）
       await env.DB.exec(
-        'CREATE TABLE IF NOT EXISTS rooms (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER NOT NULL, room_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL, price INTEGER DEFAULT 0, area TEXT, bed_type TEXT, features TEXT, total_stock INTEGER DEFAULT 1, status TEXT DEFAULT \'active\', sort_order INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id))'
+        'CREATE TABLE IF NOT EXISTS rooms (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER NOT NULL, room_id TEXT NOT NULL, name TEXT NOT NULL, price INTEGER DEFAULT 0, area TEXT, bed_type TEXT, features TEXT, total_stock INTEGER DEFAULT 1, status TEXT DEFAULT \'active\', sort_order INTEGER DEFAULT 0, created_at TEXT, updated_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id), UNIQUE(hotel_id, room_id))'
       );
 
-      // 3. coupon_templates 表（已有 hotel_id）
+      // 3. coupon_templates 表（复合唯一键 hotel_id + coupon_id）
       await env.DB.exec(
-        'CREATE TABLE IF NOT EXISTS coupon_templates (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER, coupon_id TEXT NOT NULL UNIQUE, name TEXT NOT NULL, amount INTEGER DEFAULT 0, condition_amount INTEGER DEFAULT 0, expire_days INTEGER DEFAULT 7, description TEXT, max_claim_per_user INTEGER DEFAULT 1, status TEXT DEFAULT \'active\', created_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id))'
+        'CREATE TABLE IF NOT EXISTS coupon_templates (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER, coupon_id TEXT NOT NULL, name TEXT NOT NULL, amount INTEGER DEFAULT 0, condition_amount INTEGER DEFAULT 0, expire_days INTEGER DEFAULT 7, description TEXT, max_claim_per_user INTEGER DEFAULT 1, status TEXT DEFAULT \'active\', created_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id), UNIQUE(hotel_id, coupon_id))'
       );
 
       // 4. orders 表（新增 hotel_id）
@@ -186,6 +186,8 @@ export async function onRequestGet(context) {
 
       // 为旧表补充新列（兼容升级）
       try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN slug TEXT'); } catch(e) {}
+      try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN carousel_images TEXT DEFAULT \'[]\''); } catch(e) {}
+      try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN gallery_images TEXT DEFAULT \'[]\''); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE orders ADD COLUMN hotel_id INTEGER NOT NULL DEFAULT 1'); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE coupon_claims ADD COLUMN hotel_id INTEGER NOT NULL DEFAULT 1'); } catch(e) {}
 
@@ -304,6 +306,12 @@ export async function onRequestGet(context) {
       expire: c.expire_days
     }));
 
+    // 解析图片 JSON
+    let carouselImages = [];
+    let galleryImages = [];
+    try { carouselImages = JSON.parse(hotel.carousel_images || '[]'); } catch(e) { carouselImages = []; }
+    try { galleryImages = JSON.parse(hotel.gallery_images || '[]'); } catch(e) { galleryImages = []; }
+
     const config = {
       hotel: {
         name: hotel.name,
@@ -316,7 +324,9 @@ export async function onRequestGet(context) {
         checkinTime: hotel.checkin_time,
         checkoutTime: hotel.checkout_time,
         parking: hotel.parking,
-        slug: hotel.slug
+        slug: hotel.slug,
+        carouselImages,
+        galleryImages
       },
       rooms,
       coupons
@@ -440,7 +450,7 @@ export async function onRequestPost(context) {
       const hotelId = body.hotelId;
       if (!hotelId) return jsonResponse({ success: false, message: '缺少 hotelId' }, 400);
 
-      const fields = ['name', 'address', 'phone', 'rating', 'review_count', 'tags', 'description', 'checkin_time', 'checkout_time', 'parking'];
+      const fields = ['name', 'address', 'phone', 'rating', 'review_count', 'tags', 'description', 'checkin_time', 'checkout_time', 'parking', 'carousel_images', 'gallery_images'];
       const updates = [];
       const values = [];
       for (const f of fields) {

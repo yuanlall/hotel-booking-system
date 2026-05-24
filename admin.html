@@ -357,6 +357,27 @@
             <button style="width:100%;padding:10px;border:1.5px dashed #ff6b35;border-radius:8px;background:#fff7e6;color:#d46b08;font-size:13px;cursor:pointer;font-weight:600" onclick="copyLinks()">📋 复制两个链接</button>
         </div>
 
+        <!-- 图片管理 -->
+        <div class="cfg-section">
+            <div class="cfg-section-title">
+                <span><span class="icon">📸</span> 图片管理</span>
+            </div>
+            <div class="cfg-field">
+                <div class="cfg-label">轮播图（建议750×420px，最多4张）</div>
+                <div id="cfgCarouselList"></div>
+                <button class="cfg-add-btn" onclick="addCarouselSlot()" style="margin-top:8px;">+ 添加轮播图</button>
+            </div>
+            <div class="cfg-field" style="margin-top:16px;">
+                <div class="cfg-label">实拍图（建议400×300px，最多5张）</div>
+                <div id="cfgGalleryList"></div>
+                <button class="cfg-add-btn" onclick="addGallerySlot()" style="margin-top:8px;">+ 添加实拍图</button>
+            </div>
+            <div style="margin-top:12px;">
+                <button class="cfg-save-btn" onclick="savePhotoConfig()" style="width:100%;padding:12px;">💾 保存图片配置</button>
+            </div>
+            <div class="cfg-hint" style="margin-top:8px;">提示：输入图片URL地址（支持本地路径如 ./assets/xxx.jpg 或完整URL）</div>
+        </div>
+
         <!-- 酒店信息 -->
         <div class="cfg-section">
             <div class="cfg-section-title">
@@ -906,6 +927,7 @@ async function loadConfig() {
             fillHotelForm(data.config.hotel);
             renderRoomCards(data.config.rooms);
             renderCouponCards(data.config.coupons);
+            renderPhotoSlots(data.config.hotel.carouselImages, data.config.hotel.galleryImages);
             document.getElementById('hotelNameHeader').textContent = data.config.hotel.name + ' · 管理后台';
 
             // 更新分享链接
@@ -1155,6 +1177,101 @@ async function deleteCoupon(index) {
     } catch(e) { showToast('❌ 网络错误'); }
 }
 
+
+// ===== 图片管理 =====
+function renderPhotoSlots(carouselImages, galleryImages) {
+    const carousel = Array.isArray(carouselImages) ? carouselImages : [];
+    const gallery = Array.isArray(galleryImages) ? galleryImages : [];
+    const carouselEl = document.getElementById('cfgCarouselList');
+    const galleryEl = document.getElementById('cfgGalleryList');
+
+    carouselEl.innerHTML = carousel.map((url, i) => `
+        <div class="cfg-photo-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+            <input type="text" class="cfg-input" data-carousel-idx="${i}" value="${url}" placeholder="图片URL" style="flex:1;">
+            ${url ? `<img src="${url}" style="width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid #eee;">` : ''}
+            <button onclick="removeCarouselSlot(${i})" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;">✕</button>
+        </div>
+    `).join('');
+    if (carousel.length === 0) carouselEl.innerHTML = '<div style="color:#999;font-size:12px;padding:4px 0;">暂无轮播图</div>';
+
+    galleryEl.innerHTML = gallery.map((url, i) => `
+        <div class="cfg-photo-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+            <input type="text" class="cfg-input" data-gallery-idx="${i}" value="${url}" placeholder="图片URL" style="flex:1;">
+            ${url ? `<img src="${url}" style="width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid #eee;">` : ''}
+            <button onclick="removeGallerySlot(${i})" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;">✕</button>
+        </div>
+    `).join('');
+    if (gallery.length === 0) galleryEl.innerHTML = '<div style="color:#999;font-size:12px;padding:4px 0;">暂无实拍图</div>';
+
+    window._carouselCount = carousel.length;
+    window._galleryCount = gallery.length;
+}
+
+function addCarouselSlot() {
+    if ((window._carouselCount || 0) >= 4) { showToast('⚠️ 最多4张轮播图'); return; }
+    window._carouselCount = (window._carouselCount || 0) + 1;
+    const el = document.getElementById('cfgCarouselList');
+    const hint = el.querySelector('div[style*="color:#999"]');
+    if (hint) hint.remove();
+    const idx = window._carouselCount - 1;
+    const row = document.createElement('div');
+    row.className = 'cfg-photo-row';
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+    row.innerHTML = `<input type="text" class="cfg-input" data-carousel-idx="${idx}" value="" placeholder="图片URL" style="flex:1;"><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;">✕</button>`;
+    el.appendChild(row);
+}
+
+function addGallerySlot() {
+    if ((window._galleryCount || 0) >= 5) { showToast('⚠️ 最多5张实拍图'); return; }
+    window._galleryCount = (window._galleryCount || 0) + 1;
+    const el = document.getElementById('cfgGalleryList');
+    const hint = el.querySelector('div[style*="color:#999"]');
+    if (hint) hint.remove();
+    const idx = window._galleryCount - 1;
+    const row = document.createElement('div');
+    row.className = 'cfg-photo-row';
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+    row.innerHTML = `<input type="text" class="cfg-input" data-gallery-idx="${idx}" value="" placeholder="图片URL" style="flex:1;"><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;">✕</button>`;
+    el.appendChild(row);
+}
+
+function removeCarouselSlot(idx) {
+    window._carouselCount = Math.max(0, (window._carouselCount || 0) - 1);
+    const inputs = document.querySelectorAll('#cfgCarouselList input[data-carousel-idx]');
+    const urls = Array.from(inputs).map(inp => inp.value.trim());
+    urls.splice(idx, 1);
+    renderPhotoSlots(urls, null);
+}
+
+function removeGallerySlot(idx) {
+    window._galleryCount = Math.max(0, (window._galleryCount || 0) - 1);
+    const inputs = document.querySelectorAll('#cfgGalleryList input[data-gallery-idx]');
+    const urls = Array.from(inputs).map(inp => inp.value.trim());
+    urls.splice(idx, 1);
+    renderPhotoSlots(null, urls);
+}
+
+async function savePhotoConfig() {
+    const carouselInputs = document.querySelectorAll('#cfgCarouselList input[data-carousel-idx]');
+    const galleryInputs = document.querySelectorAll('#cfgGalleryList input[data-gallery-idx]');
+    const carouselImages = Array.from(carouselInputs).map(inp => inp.value.trim()).filter(Boolean);
+    const galleryImages = Array.from(galleryInputs).map(inp => inp.value.trim()).filter(Boolean);
+
+    const body = {
+        action: 'update_hotel',
+        hotelId: currentAdminHotelId,
+        carousel_images: JSON.stringify(carouselImages),
+        gallery_images: JSON.stringify(galleryImages)
+    };
+
+    try {
+        const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
+        if (res.status === 401) { handleAuthExpired(); return; }
+        const d = await res.json();
+        showToast(d.success ? '✅ 图片配置已保存' : '❌ ' + (d.message || '保存失败'));
+        if (d.success) loadConfig();
+    } catch(e) { showToast('❌ 网络错误'); }
+}
 
 // ===== 弹窗通用 =====
 function openCfgModal(title, html) {

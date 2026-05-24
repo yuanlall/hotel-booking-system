@@ -286,19 +286,19 @@
     <!-- ===== 联系信息 ===== -->
     <div class="section">
         <div class="section-header">📋 酒店信息</div>
-        <a class="info-item" href="tel:07978681517">
+        <a class="info-item" id="contactPhone" href="tel:">
             <div class="info-icon">📞</div>
             <div class="info-content">
                 <div class="info-title">电话 / 微信同号</div>
-                <div class="info-desc">0797-8681517（24小时在线）</div>
+                <div class="info-desc" id="contactPhoneText">加载中...</div>
             </div>
             <div class="info-arrow">›</div>
         </a>
-        <a class="info-item" href="https://maps.apple.com/?q=赣州市章贡区长冈路13号达芬奇国际中心9栋">
+        <a class="info-item" id="contactAddress" href="#">
             <div class="info-icon">📍</div>
             <div class="info-content">
                 <div class="info-title">地址</div>
-                <div class="info-desc">赣州市章贡区长冈路13号达芬奇国际中心9栋（近博物馆）</div>
+                <div class="info-desc" id="contactAddressText">加载中...</div>
             </div>
             <div class="info-arrow">›</div>
         </a>
@@ -306,7 +306,7 @@
             <div class="info-icon">⏰</div>
             <div class="info-content">
                 <div class="info-title">入离时间</div>
-                <div class="info-desc">入住 14:00 后 · 离店 12:00 前 · 停车场免费</div>
+                <div class="info-desc" id="contactTimeText">入住 14:00 后 · 离店 12:00 前 · 停车场免费</div>
             </div>
             <div class="info-arrow">›</div>
         </div>
@@ -499,6 +499,19 @@
                         if (cfg.hotel.tags && cfg.hotel.tags.length) {
                             HOTEL.tags = cfg.hotel.tags.map((t, i) => ({ text: t, type: i === 0 ? 'orange' : '' }));
                         }
+                        // 动态图片：优先用 API 返回的图片，否则用默认
+                        if (cfg.hotel.carouselImages && cfg.hotel.carouselImages.length) {
+                            HOTEL.carouselImages = cfg.hotel.carouselImages;
+                        } else {
+                            HOTEL.carouselImages = ['./assets/hero-exterior.jpg', './assets/hero-lobby.jpg', './assets/hero-room.jpg', './assets/hero-restaurant.jpg'];
+                        }
+                        if (cfg.hotel.galleryImages && cfg.hotel.galleryImages.length) {
+                            HOTEL.photos = cfg.hotel.galleryImages;
+                        }
+                        // 保存入离时间等额外信息
+                        HOTEL.checkinTime = cfg.hotel.checkinTime || '14:00';
+                        HOTEL.checkoutTime = cfg.hotel.checkoutTime || '12:00';
+                        HOTEL.parking = cfg.hotel.parking || '免费';
                         // 动态设置页面标题
                         document.title = cfg.hotel.name + ' - 微信预订';
                     }
@@ -570,6 +583,21 @@
                 el.textContent = tag.text;
                 tagsEl.appendChild(el);
             });
+
+            // 动态联系信息
+            if (HOTEL.phone) {
+                document.getElementById('contactPhone').href = `tel:${HOTEL.phone.replace(/-/g, '')}`;
+                document.getElementById('contactPhoneText').textContent = `${HOTEL.phone}（24小时在线）`;
+            }
+            if (HOTEL.address) {
+                document.getElementById('contactAddress').href = `https://maps.apple.com/?q=${encodeURIComponent(HOTEL.address)}`;
+                document.getElementById('contactAddressText').textContent = HOTEL.address;
+            }
+            // 入离时间
+            const checkin = HOTEL.checkinTime || '14:00';
+            const checkout = HOTEL.checkoutTime || '12:00';
+            const parking = HOTEL.parking || '免费';
+            document.getElementById('contactTimeText').textContent = `入住 ${checkin} 后 · 离店 ${checkout} 前 · 停车场${parking}`;
         }
 
         function renderRooms() {
@@ -689,18 +717,14 @@
             const slider = document.getElementById('heroSlider');
             const dots = document.getElementById('heroDots');
             
-            // 真实酒店照片轮播
+            // 动态轮播图片（从 API 加载或 fallback 默认）
             slider.innerHTML = '';
-            const slides = [
-                { src: './assets/hero-exterior.jpg', alt: '酒店外观' },
-                { src: './assets/hero-lobby.jpg', alt: '酒店大厅' },
-                { src: './assets/hero-room.jpg', alt: '豪华客房' },
-                { src: './assets/hero-restaurant.jpg', alt: '餐厅' }
-            ];
-            slides.forEach((item, i) => {
+            const carouselImages = HOTEL.carouselImages || ['./assets/hero-exterior.jpg', './assets/hero-lobby.jpg', './assets/hero-room.jpg', './assets/hero-restaurant.jpg'];
+            const slideNames = ['酒店外观', '酒店大厅', '豪华客房', '餐厅'];
+            carouselImages.forEach((src, i) => {
                 const slide = document.createElement('div');
                 slide.className = 'hero-slide';
-                slide.innerHTML = `<img src="${item.src}" alt="${item.alt}" loading="${i === 0 ? 'eager' : 'lazy'}">`;
+                slide.innerHTML = `<img src="${src}" alt="${slideNames[i] || '酒店' + (i+1)}" loading="${i === 0 ? 'eager' : 'lazy'}">`;
                 slider.appendChild(slide);
                 
                 const dot = document.createElement('div');
@@ -710,7 +734,8 @@
             });
 
             setInterval(() => {
-                currentSlide = (currentSlide + 1) % slides.length;
+                const slideCount = document.querySelectorAll('.hero-slide').length || 1;
+                currentSlide = (currentSlide + 1) % slideCount;
                 slider.style.transform = `translateX(-${currentSlide * 100}%)`;
                 document.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
             }, 4000);
