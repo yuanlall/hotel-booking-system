@@ -14,15 +14,26 @@ function jsonResponse(data, status = 200) {
 // 返回 { hotelId, hotel, slug } 或 null
 async function resolveHotel(env, request) {
   const url = new URL(request.url);
-  // 优先从 query 参数获取 slug
+
+  // 优先级1: hotelId 参数（staff后台通过token获取的数字ID直接查询）
+  const hotelIdParam = url.searchParams.get('hotelId');
+  if (hotelIdParam) {
+    const id = parseInt(hotelIdParam);
+    if (!isNaN(id)) {
+      const hotel = await env.DB.prepare('SELECT * FROM hotels WHERE id = ? AND active = 1').bind(id).first();
+      if (hotel) return { hotelId: hotel.id, hotel, slug: hotel.slug };
+    }
+  }
+
+  // 优先级2: hotel slug 参数（预订页通过URL ?hotel=xxx 传入）
   let slug = url.searchParams.get('hotel');
 
-  // fallback: 从自定义请求头获取
+  // 优先级3: 从自定义请求头获取
   if (!slug) {
     slug = request.headers.get('X-Hotel-Slug');
   }
 
-  // fallback: 从 Referer 解析（前端页面跳转 API 时自动携带）
+  // 优先级4: 从 Referer 解析（前端页面跳转 API 时自动携带）
   if (!slug) {
     const referer = request.headers.get('Referer') || '';
     const refererUrl = referer ? new URL(referer) : null;
@@ -42,7 +53,7 @@ async function resolveHotel(env, request) {
   const hotel = await env.DB.prepare('SELECT * FROM hotels WHERE slug = ? AND active = 1').bind(slug).first();
   if (hotel) return { hotelId: hotel.id, hotel, slug };
 
-  // 兼容：如果是数字，尝试按 id 查找
+  // 兼容：如果slug是数字，尝试按 id 查找
   const id = parseInt(slug);
   if (!isNaN(id)) {
     const byId = await env.DB.prepare('SELECT * FROM hotels WHERE id = ? AND active = 1').bind(id).first();
@@ -451,26 +462,37 @@ export async function onRequestPost(context) {
       const hotelId = body.hotelId;
       if (!hotelId) return jsonResponse({ success: false, message: '缺少 hotelId' }, 400);
 
-      const fields = { name: 'name', price: 'price', area: 'area', bed_type: 'bed_type', features: 'features', total_stock: 'total_stock', status: 'status', sort_order: 'sort_order' };
-      const sets = ['hotel_id = excluded.hotel_id'];
-      const vals = [hotelId, body.room_id, now];
-      for (const [key, col] of Object.entries(fields)) {
-        if (body[key] !== undefined) {
-          sets.push(`${col} = excluded.${col}`);
-          vals.push(body[key]);
+      // 先查询该酒店下是否已有此 room_id
+      const existing = await env.DB.prepare('SELECT id FROM rooms WHERE hotel_id = ? AND room_id = ?').bind(hotelId, body.room_id).first();
+
+      if (existing) {
+        // UPDATE：仅更新提供的字段，不会跨酒店污染
+        const fields = { name: 'name', price: 'price', area: 'area', bed_type: 'bed_type', features: 'features', total_stock: 'total_stock', status: 'status', sort_order: 'sort_order' };
+        const updates = ['updated_at = ?'];
+        const vals = [now];
+        for (const [key, col] of Object.entries(fields)) {
+          if (body[key] !== undefined) {
+            updates.push(`${col} = ?`);
+            vals.push(body[key]);
+          }
         }
-      }
-      const columns = ['hotel_id', 'room_id', 'updated_at'];
-      const placeholders = ['?', '?', '?'];
-      for (const [key] of Object.entries(fields)) {
-        if (body[key] !== undefined) {
-          columns.push(fields[key]);
-          placeholders.push('?');
+        vals.push(hotelId, body.room_id);
+        await env.DB.prepare(`UPDATE rooms SET ${updates.join(', ')} WHERE hotel_id = ? AND room_id = ?`).bind(...vals).run();
+      } else {
+        // INSERT：新房型
+        const columns = ['hotel_id', 'room_id', 'created_at', 'updated_at'];
+        const placeholders = ['?', '?', '?', '?'];
+        const vals = [hotelId, body.room_id, now, now];
+        const fields = { name: 'name', price: 'price', area: 'area', bed_type: 'bed_type', features: 'features', total_stock: 'total_stock', status: 'status', sort_order: 'sort_order' };
+        for (const [key, col] of Object.entries(fields)) {
+          if (body[key] !== undefined) {
+            columns.push(col);
+            placeholders.push('?');
+            vals.push(body[key]);
+          }
         }
+        await env.DB.prepare(`INSERT INTO rooms (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`).bind(...vals).run();
       }
-      await env.DB.prepare(
-        `INSERT INTO rooms (${columns.join(', ')}) VALUES (${placeholders.join(', ')}) ON CONFLICT(room_id) DO UPDATE SET ${sets.join(', ')}`
-      ).bind(...vals).run();
       return jsonResponse({ success: true, message: '房型已保存' });
     }
 
@@ -479,22 +501,38 @@ export async function onRequestPost(context) {
       const hotelId = body.hotelId;
       if (!hotelId) return jsonResponse({ success: false, message: '缺少 hotelId' }, 400);
 
-      const fields = { name: 'name', amount: 'amount', condition_amount: 'condition_amount', expire_days: 'expire_days', description: 'description', max_claim_per_user: 'max_claim_per_user', status: 'status' };
-      const sets = ['hotel_id = excluded.hotel_id'];
-      const vals = [hotelId, body.coupon_id, now];
-      const columns = ['hotel_id', 'coupon_id', 'created_at'];
-      const placeholders = ['?', '?', '?'];
-      for (const [key] of Object.entries(fields)) {
-        if (body[key] !== undefined) {
-          sets.push(`${fields[key]} = excluded.${fields[key]}`);
-          columns.push(fields[key]);
-          placeholders.push('?');
-          vals.push(body[key]);
+      // 先查询该酒店下是否已有此 coupon_id
+      const existing = await env.DB.prepare('SELECT id FROM coupon_templates WHERE hotel_id = ? AND coupon_id = ?').bind(hotelId, body.coupon_id).first();
+
+      if (existing) {
+        // UPDATE：仅更新提供的字段
+        const fields = { name: 'name', amount: 'amount', condition_amount: 'condition_amount', expire_days: 'expire_days', description: 'description', max_claim_per_user: 'max_claim_per_user', status: 'status' };
+        const updates = [];
+        const vals = [];
+        for (const [key, col] of Object.entries(fields)) {
+          if (body[key] !== undefined) {
+            updates.push(`${col} = ?`);
+            vals.push(body[key]);
+          }
         }
+        if (updates.length === 0) return jsonResponse({ success: false, message: '无更新字段' }, 400);
+        vals.push(hotelId, body.coupon_id);
+        await env.DB.prepare(`UPDATE coupon_templates SET ${updates.join(', ')} WHERE hotel_id = ? AND coupon_id = ?`).bind(...vals).run();
+      } else {
+        // INSERT：新优惠券模板
+        const columns = ['hotel_id', 'coupon_id', 'created_at'];
+        const placeholders = ['?', '?', '?'];
+        const vals = [hotelId, body.coupon_id, now];
+        const fields = { name: 'name', amount: 'amount', condition_amount: 'condition_amount', expire_days: 'expire_days', description: 'description', max_claim_per_user: 'max_claim_per_user', status: 'status' };
+        for (const [key, col] of Object.entries(fields)) {
+          if (body[key] !== undefined) {
+            columns.push(col);
+            placeholders.push('?');
+            vals.push(body[key]);
+          }
+        }
+        await env.DB.prepare(`INSERT INTO coupon_templates (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`).bind(...vals).run();
       }
-      await env.DB.prepare(
-        `INSERT INTO coupon_templates (${columns.join(', ')}) VALUES (${placeholders.join(', ')}) ON CONFLICT(coupon_id) DO UPDATE SET ${sets.join(', ')}`
-      ).bind(...vals).run();
       return jsonResponse({ success: true, message: '优惠券模板已保存' });
     }
 
