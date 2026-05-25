@@ -378,6 +378,20 @@
             <div class="cfg-hint" style="margin-top:8px;">提示：点击「📤 上传」选择本地图片，或直接粘贴图片URL地址</div>
         </div>
 
+        <!-- 评价管理 -->
+        <div class="cfg-section">
+            <div class="cfg-section-title">
+                <span><span class="icon">💬</span> 评价管理</span>
+                <span style="font-size:11px;color:#999;font-weight:400;margin-left:auto;">最多5条</span>
+            </div>
+            <div id="cfgReviewList"></div>
+            <button class="cfg-add-btn" onclick="addReviewSlot()" style="margin-top:8px;" id="addReviewBtn">+ 添加评价</button>
+            <div style="margin-top:12px;">
+                <button class="cfg-save-btn" onclick="saveReviewConfig()" style="width:100%;padding:12px;">💾 保存评价配置</button>
+            </div>
+            <div class="cfg-hint" style="margin-top:8px;">提示：填写住客评价内容，会显示在预订页「最新评价」区域</div>
+        </div>
+
         <!-- 酒店信息 -->
         <div class="cfg-section">
             <div class="cfg-section-title">
@@ -928,6 +942,7 @@ async function loadConfig() {
             renderRoomCards(data.config.rooms);
             renderCouponCards(data.config.coupons);
             renderPhotoSlots(data.config.hotel.carouselImages, data.config.hotel.galleryImages);
+            renderReviewSlots(data.config.hotel.reviews);
             document.getElementById('hotelNameHeader').textContent = data.config.hotel.name + ' · 管理后台';
 
             // 更新分享链接
@@ -1340,6 +1355,115 @@ function compressImage(file, maxSize) {
         reader.onerror = function() { reject(new Error('文件读取失败')); };
         reader.readAsDataURL(file);
     });
+}
+
+// ===== 评价管理 =====
+const DEFAULT_AVATARS = ['张', '李', '王', '刘', '陈', '赵', '周', '吴'];
+const REVIEW_TAGS_POOL = ['位置好', '干净整洁', '服务热情', '性价比高', '设施齐全', '安静舒适', '交通便利', '早餐不错'];
+
+function renderReviewSlots(reviews) {
+    const list = Array.isArray(reviews) ? reviews : [];
+    const el = document.getElementById('cfgReviewList');
+    const addBtn = document.getElementById('addReviewBtn');
+    
+    el.innerHTML = list.map((r, i) => `
+        <div class="cfg-review-card" style="background:#fafafa;border:1px solid #eee;border-radius:10px;padding:14px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="review-avatar-edit" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">${r.avatar || DEFAULT_AVATARS[i % DEFAULT_AVATARS.length]}</span>
+                    <input type="text" class="cfg-input" data-review-name="${i}" value="${r.name || ''}" placeholder="住客昵称" style="flex:0 0 100px;padding:6px 10px;font-size:13px;">
+                </div>
+                <select data-review-stars="${i}" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;color:#faad14;background:#fff;">
+                    ${[5,4,3,2,1].map(s => `<option value="${s}" ${r.stars === s ? 'selected' : ''}>${'★'.repeat(s)}${'☆'.repeat(5-s)}</option>`).join('')}
+                </select>
+                <button onclick="removeReviewSlot(${i})" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;padding:0 4px;">✕</button>
+            </div>
+            <textarea data-review-text="${i}" placeholder="评价内容..." style="width:100%;padding:8px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;resize:vertical;min-height:50px;line-height:1.5;box-sizing:border-box;">${r.text || ''}</textarea>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:8px;">
+                <span style="font-size:11px;color:#999;">标签：</span>
+                ${REVIEW_TAGS_POOL.map(tag => {
+                    const checked = r.tags && r.tags.includes(tag);
+                    return `<label style="font-size:11px;color:#666;cursor:pointer;display:inline-flex;align-items:center;gap:2px;"><input type="checkbox" data-review-tag="${i}-${tag.replace(/\s/g,'_')}" ${checked ? 'checked' : ''} style="margin:0;"> ${tag}</label>`;
+                }).join('')}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                <span style="font-size:11px;color:#999;">日期：</span>
+                <input type="date" data-review-date="${i}" value="${r.date || ''}" style="padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+            </div>
+        </div>
+    `).join('');
+    
+    if (list.length === 0) el.innerHTML = '<div style="color:#999;font-size:12px;padding:16px;text-align:center;">暂无评价，点击下方按钮添加</div>';
+    
+    if (addBtn) addBtn.style.display = list.length >= 5 ? 'none' : 'inline-block';
+    window._reviewCount = list.length;
+}
+
+function addReviewSlot() {
+    if ((window._reviewCount || 0) >= 5) { showToast('⚠️ 最多5条评价'); return; }
+    window._reviewCount = (window._reviewCount || 0) + 1;
+    const currentReviews = collectReviewData();
+    currentReviews.push({
+        name: '', text: '', stars: 5, tags: [], date: new Date().toISOString().split('T')[0],
+        avatar: DEFAULT_AVATARS[(window._reviewCount - 1) % DEFAULT_AVATARS.length]
+    });
+    renderReviewSlots(currentReviews);
+}
+
+function removeReviewSlot(idx) {
+    const currentReviews = collectReviewData();
+    currentReviews.splice(idx, 1);
+    renderReviewSlots(currentReviews);
+}
+
+function collectReviewData() {
+    const nameInputs = document.querySelectorAll('#cfgReviewList input[data-review-name]');
+    const textAreas = document.querySelectorAll('#cfgReviewList textarea[data-review-text]');
+    const starSelects = document.querySelectorAll('#cfgReviewList select[data-review-stars]');
+    const dateInputs = document.querySelectorAll('#cfgReviewList input[data-review-date]');
+    const tagCheckboxes = document.querySelectorAll('#cfgReviewList input[data-review-tag]');
+    
+    const count = nameInputs.length;
+    const reviews = [];
+    for (let i = 0; i < count; i++) {
+        const name = (nameInputs[i]?.value || '').trim();
+        const text = (textAreas[i]?.value || '').trim();
+        if (!name && !text) continue;
+        const stars = parseInt(starSelects[i]?.value) || 5;
+        const date = dateInputs[i]?.value || new Date().toISOString().split('T')[0];
+        const tags = [];
+        tagCheckboxes.forEach(cb => {
+            const prefix = `${i}-`;
+            if (cb.dataset.reviewTag && cb.dataset.reviewTag.startsWith(prefix) && cb.checked) {
+                tags.push(cb.dataset.reviewTag.substring(prefix.length).replace(/_/g, ' '));
+            }
+        });
+        reviews.push({
+            name: name || '匿名用户',
+            text: text || '住得很舒服，下次还会再来！',
+            stars,
+            tags,
+            date,
+            avatar: DEFAULT_AVATARS[i % DEFAULT_AVATARS.length]
+        });
+    }
+    return reviews;
+}
+
+async function saveReviewConfig() {
+    const reviews = collectReviewData();
+    const body = {
+        action: 'update_hotel',
+        hotelId: currentAdminHotelId,
+        reviews: JSON.stringify(reviews)
+    };
+    try {
+        const res = await fetch('/api/config', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
+        if (res.status === 401) { handleAuthExpired(); return; }
+        const d = await res.json();
+        showToast(d.success ? '✅ 评价配置已保存（' + reviews.length + '条）' : '❌ ' + (d.message || '保存失败'));
+        if (d.success) loadConfig();
+    } catch(e) { showToast('❌ 网络错误'); }
 }
 
 // ===== 弹窗通用 =====

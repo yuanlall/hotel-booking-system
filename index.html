@@ -277,9 +277,9 @@
         <div class="photo-grid" id="photoGrid"></div>
     </div>
 
-    <!-- ===== 住客评价 ===== -->
+    <!-- ===== 最新评价 ===== -->
     <div class="section">
-        <div class="section-header">💬 住客评价</div>
+        <div class="section-header">💬 最新评价</div>
         <div id="reviewList"></div>
     </div>
 
@@ -503,6 +503,7 @@
                         // 空数组不 fallback 默认图（避免显示其他酒店照片），由 render 层做占位
                         HOTEL.carouselImages = cfg.hotel.carouselImages || [];
                         HOTEL.photos = cfg.hotel.galleryImages || [];
+                        HOTEL.reviews = cfg.hotel.reviews || [];
                         // 保存入离时间等额外信息
                         HOTEL.checkinTime = cfg.hotel.checkinTime || '14:00';
                         HOTEL.checkoutTime = cfg.hotel.checkoutTime || '12:00';

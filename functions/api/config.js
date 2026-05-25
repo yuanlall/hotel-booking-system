@@ -188,6 +188,7 @@ export async function onRequestGet(context) {
       try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN slug TEXT'); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN carousel_images TEXT DEFAULT \'[]\''); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN gallery_images TEXT DEFAULT \'[]\''); } catch(e) {}
+      try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN reviews TEXT DEFAULT \'[]\''); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE orders ADD COLUMN hotel_id INTEGER NOT NULL DEFAULT 1'); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE coupon_claims ADD COLUMN hotel_id INTEGER NOT NULL DEFAULT 1'); } catch(e) {}
 
@@ -309,8 +310,10 @@ export async function onRequestGet(context) {
     // 解析图片 JSON
     let carouselImages = [];
     let galleryImages = [];
+    let reviews = [];
     try { carouselImages = JSON.parse(hotel.carousel_images || '[]'); } catch(e) { carouselImages = []; }
     try { galleryImages = JSON.parse(hotel.gallery_images || '[]'); } catch(e) { galleryImages = []; }
+    try { reviews = JSON.parse(hotel.reviews || '[]'); } catch(e) { reviews = []; }
 
     const config = {
       hotel: {
@@ -326,7 +329,8 @@ export async function onRequestGet(context) {
         parking: hotel.parking,
         slug: hotel.slug,
         carouselImages,
-        galleryImages
+        galleryImages,
+        reviews
       },
       rooms,
       coupons
@@ -450,7 +454,7 @@ export async function onRequestPost(context) {
       const hotelId = body.hotelId;
       if (!hotelId) return jsonResponse({ success: false, message: '缺少 hotelId' }, 400);
 
-      const fields = ['name', 'address', 'phone', 'rating', 'review_count', 'tags', 'description', 'checkin_time', 'checkout_time', 'parking', 'carousel_images', 'gallery_images'];
+      const fields = ['name', 'address', 'phone', 'rating', 'review_count', 'tags', 'description', 'checkin_time', 'checkout_time', 'parking', 'carousel_images', 'gallery_images', 'reviews'];
       const updates = [];
       const values = [];
       for (const f of fields) {
