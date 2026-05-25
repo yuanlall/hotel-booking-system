@@ -499,15 +499,10 @@
                         if (cfg.hotel.tags && cfg.hotel.tags.length) {
                             HOTEL.tags = cfg.hotel.tags.map((t, i) => ({ text: t, type: i === 0 ? 'orange' : '' }));
                         }
-                        // 动态图片：优先用 API 返回的图片，否则用默认
-                        if (cfg.hotel.carouselImages && cfg.hotel.carouselImages.length) {
-                            HOTEL.carouselImages = cfg.hotel.carouselImages;
-                        } else {
-                            HOTEL.carouselImages = ['./assets/hero-exterior.jpg', './assets/hero-lobby.jpg', './assets/hero-room.jpg', './assets/hero-restaurant.jpg'];
-                        }
-                        if (cfg.hotel.galleryImages && cfg.hotel.galleryImages.length) {
-                            HOTEL.photos = cfg.hotel.galleryImages;
-                        }
+                        // 动态图片：API返回了就赋值（含空数组=新酒店无图片）
+                        // 空数组不 fallback 默认图（避免显示其他酒店照片），由 render 层做占位
+                        HOTEL.carouselImages = cfg.hotel.carouselImages || [];
+                        HOTEL.photos = cfg.hotel.galleryImages || [];
                         // 保存入离时间等额外信息
                         HOTEL.checkinTime = cfg.hotel.checkinTime || '14:00';
                         HOTEL.checkoutTime = cfg.hotel.checkoutTime || '12:00';
@@ -604,6 +599,12 @@
             const list = document.getElementById('roomList');
             list.innerHTML = '';
             
+            // 空房型优雅降级
+            if (!HOTEL.rooms || HOTEL.rooms.length === 0) {
+                list.innerHTML = '<div style="text-align:center;padding:24px;color:#bbb;font-size:14px;">房型信息即将上线 🛏️</div>';
+                return;
+            }
+            
             HOTEL.rooms.forEach(room => {
                 const stock = roomAvailability[room.id] ?? room.stock;
                 const stockClass = stock === 0 ? 'empty' : stock <= 2 ? 'low' : 'ok';
@@ -635,6 +636,16 @@
         function renderCoupons() {
             const list = document.getElementById('couponList');
             list.innerHTML = '';
+            
+            // 空优惠券优雅降级：不显示提示，直接隐藏优惠券区域
+            if (!HOTEL.coupons || HOTEL.coupons.length === 0) {
+                const couponSection = list.closest('.section');
+                if (couponSection) couponSection.style.display = 'none';
+                return;
+            }
+            // 有优惠券时确保区域可见
+            const couponSection = list.closest('.section');
+            if (couponSection) couponSection.style.display = '';
             
             HOTEL.coupons.forEach(c => {
                 const item = document.createElement('div');
@@ -673,6 +684,12 @@
             const grid = document.getElementById('photoGrid');
             grid.innerHTML = '';
             
+            // 空图片优雅降级：显示占位提示
+            if (!HOTEL.photos || HOTEL.photos.length === 0) {
+                grid.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:120px;color:#bbb;font-size:14px;background:#f5f5f5;border-radius:8px;">📸 酒店照片即将上线</div>';
+                return;
+            }
+            
             HOTEL.photos.forEach((url, i) => {
                 const item = document.createElement('div');
                 item.className = 'photo-item';
@@ -696,6 +713,12 @@
             const list = document.getElementById('reviewList');
             list.innerHTML = '';
             
+            // 空评价优雅降级
+            if (!HOTEL.reviews || HOTEL.reviews.length === 0) {
+                list.innerHTML = '<div style="text-align:center;padding:24px;color:#bbb;font-size:14px;">暂无评价，成为第一位评价的客人吧 ✨</div>';
+                return;
+            }
+            
             HOTEL.reviews.forEach(r => {
                 const item = document.createElement('div');
                 item.className = 'review-item';
@@ -716,15 +739,24 @@
         function startAutoSlide() {
             const slider = document.getElementById('heroSlider');
             const dots = document.getElementById('heroDots');
-            
-            // 动态轮播图片（从 API 加载或 fallback 默认）
             slider.innerHTML = '';
-            const carouselImages = HOTEL.carouselImages || ['./assets/hero-exterior.jpg', './assets/hero-lobby.jpg', './assets/hero-room.jpg', './assets/hero-restaurant.jpg'];
+            dots.innerHTML = '';
+            
+            // 动态轮播图片：空数组时显示占位图
+            let carouselImages = HOTEL.carouselImages;
+            if (!carouselImages || carouselImages.length === 0) {
+                // 无图片时显示酒店名占位
+                slider.innerHTML = `<div class="hero-slide" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);height:100%;"><div style="text-align:center;color:#fff;"><div style="font-size:28px;font-weight:bold;">${HOTEL.name}</div><div style="font-size:14px;margin-top:8px;opacity:0.8;">酒店图片即将上线</div></div></div>`;
+                dots.style.display = 'none';
+                return;
+            }
+            dots.style.display = '';
+            
             const slideNames = ['酒店外观', '酒店大厅', '豪华客房', '餐厅'];
             carouselImages.forEach((src, i) => {
                 const slide = document.createElement('div');
                 slide.className = 'hero-slide';
-                slide.innerHTML = `<img src="${src}" alt="${slideNames[i] || '酒店' + (i+1)}" loading="${i === 0 ? 'eager' : 'lazy'}">`;
+                slide.innerHTML = `<img src="${src}" alt="${slideNames[i] || '酒店' + (i+1)}" loading="${i === 0 ? 'eager' : 'lazy'}" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#667eea,#764ba2)';this.parentElement.innerHTML+='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:#fff;font-size:16px;\'>图片加载中...</div>'">`;
                 slider.appendChild(slide);
                 
                 const dot = document.createElement('div');
@@ -733,12 +765,15 @@
                 dots.appendChild(dot);
             });
 
-            setInterval(() => {
-                const slideCount = document.querySelectorAll('.hero-slide').length || 1;
-                currentSlide = (currentSlide + 1) % slideCount;
-                slider.style.transform = `translateX(-${currentSlide * 100}%)`;
-                document.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
-            }, 4000);
+            // 多于1张才自动轮播
+            if (carouselImages.length > 1) {
+                setInterval(() => {
+                    const slideCount = document.querySelectorAll('.hero-slide').length || 1;
+                    currentSlide = (currentSlide + 1) % slideCount;
+                    slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+                    document.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+                }, 4000);
+            }
         }
 
         function goToSlide(index) {
