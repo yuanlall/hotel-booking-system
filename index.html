@@ -1184,15 +1184,17 @@
             const nights = Math.ceil((new Date(checkout) - new Date(checkin)) / (1000*60*60*24));
             let total = selectedRoom.price * nights;
             
-            // 选最优1张可用优惠券
+            // 选最优1张可用优惠券（支持 private 券：不在 HOTEL.coupons 里的券用自身 amount/condition）
             let usedCouponId = null;
             let couponDiscount = 0;
             claimedCoupons.forEach(cc => {
                 if (cc.used) return;
                 const c = HOTEL.coupons.find(co => co.id === cc.id);
-                if (c && total >= c.condition && c.amount > couponDiscount) {
+                const amount = c ? c.amount : cc.amount;
+                const condition = c ? c.condition : (cc.condition || 0);
+                if (total >= condition && amount > couponDiscount) {
                     usedCouponId = cc.id;
-                    couponDiscount = c.amount;
+                    couponDiscount = amount;
                 }
             });
             if (usedCouponId) total -= couponDiscount;

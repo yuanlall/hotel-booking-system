@@ -861,7 +861,7 @@ let cfgModalData = {};        // 弹窗中的临时数据
 async function loadConfig() {
     try {
         const hotelParam = currentAdminHotelId ? `?hotelId=${currentAdminHotelId}` : '';
-        const res = await fetch(`/api/config${hotelParam}`);
+        const res = await fetch(`/api/config${hotelParam}`, { headers: getAuthHeaders() });
         const data = await res.json();
         if (data.success && data.config) {
             configData = data.config;
