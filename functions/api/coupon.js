@@ -83,6 +83,13 @@ export async function onRequestPost(context) {
 
     const hotelId = body.hotelId || await resolveHotelId(env, request);
 
+    // 校验优惠券模板存在且有效（支持 private 券通过分享链接领取）
+    const template = await env.DB.prepare(
+      'SELECT id, visibility, status FROM coupon_templates WHERE hotel_id = ? AND coupon_id = ?'
+    ).bind(hotelId, couponId).first();
+    if (!template) return jsonResponse({ success: false, message: '优惠券不存在' }, 404);
+    if (template.status !== 'active') return jsonResponse({ success: false, message: '优惠券已失效' }, 400);
+
     // 检查是否已有未使用的同类型券（同酒店内）
     const existing = await env.DB.prepare(
       'SELECT id, used, expire_at FROM coupon_claims WHERE hotel_id = ? AND phone = ? AND coupon_id = ? AND used = 0 AND expire_at > ?'
@@ -180,6 +187,24 @@ export async function onRequestGet(context) {
   const phone = url.searchParams.get('phone');
 
   if (!env.DB) return jsonResponse({ success: false, message: '数据库不可用' }, 503);
+
+  // 老客召回券信息查询（无需登录，用于分享链接预览）
+  if (action === 'recall_info') {
+    try {
+      const couponId = url.searchParams.get('couponId');
+      const hotelId = parseInt(url.searchParams.get('hotelId')) || await resolveHotelId(env, request);
+      if (!couponId) return jsonResponse({ success: false, message: '缺少 couponId' }, 400);
+      const tmpl = await env.DB.prepare(
+        'SELECT coupon_id, name, amount, condition_amount, expire_days, visibility, status FROM coupon_templates WHERE hotel_id = ? AND coupon_id = ?'
+      ).bind(hotelId, couponId).first();
+      if (!tmpl || tmpl.status !== 'active' || tmpl.visibility !== 'private') {
+        return jsonResponse({ success: false, message: '优惠券不存在或已失效' }, 404);
+      }
+      return jsonResponse({ success: true, coupon: { id: tmpl.coupon_id, name: tmpl.name, amount: tmpl.amount, condition: tmpl.condition_amount, expire: tmpl.expire_days } });
+    } catch(e) {
+      return jsonResponse({ success: false, message: '查询失败' }, 500);
+    }
+  }
 
   // 初始化表结构
   if (action === 'init') {

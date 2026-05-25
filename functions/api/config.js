@@ -159,7 +159,7 @@ export async function onRequestGet(context) {
 
       // 3. coupon_templates 表（复合唯一键 hotel_id + coupon_id）
       await env.DB.exec(
-        'CREATE TABLE IF NOT EXISTS coupon_templates (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER, coupon_id TEXT NOT NULL, name TEXT NOT NULL, amount INTEGER DEFAULT 0, condition_amount INTEGER DEFAULT 0, expire_days INTEGER DEFAULT 7, description TEXT, max_claim_per_user INTEGER DEFAULT 1, status TEXT DEFAULT \'active\', created_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id), UNIQUE(hotel_id, coupon_id))'
+        'CREATE TABLE IF NOT EXISTS coupon_templates (id INTEGER PRIMARY KEY AUTOINCREMENT, hotel_id INTEGER, coupon_id TEXT NOT NULL, name TEXT NOT NULL, amount INTEGER DEFAULT 0, condition_amount INTEGER DEFAULT 0, expire_days INTEGER DEFAULT 7, description TEXT, max_claim_per_user INTEGER DEFAULT 1, visibility TEXT DEFAULT \'public\', status TEXT DEFAULT \'active\', created_at TEXT, FOREIGN KEY (hotel_id) REFERENCES hotels(id), UNIQUE(hotel_id, coupon_id))'
       );
 
       // 4. orders 表（新增 hotel_id）
@@ -189,6 +189,7 @@ export async function onRequestGet(context) {
       try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN carousel_images TEXT DEFAULT \'[]\''); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN gallery_images TEXT DEFAULT \'[]\''); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE hotels ADD COLUMN reviews TEXT DEFAULT \'[]\''); } catch(e) {}
+      try { await env.DB.exec('ALTER TABLE coupon_templates ADD COLUMN visibility TEXT DEFAULT \'public\''); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE orders ADD COLUMN hotel_id INTEGER NOT NULL DEFAULT 1'); } catch(e) {}
       try { await env.DB.exec('ALTER TABLE coupon_claims ADD COLUMN hotel_id INTEGER NOT NULL DEFAULT 1'); } catch(e) {}
 
@@ -294,9 +295,13 @@ export async function onRequestGet(context) {
       stock: r.total_stock
     }));
 
-    // 查优惠券模板
+    // 查优惠券模板（未登录用户只看公开券，登录用户看全部）
+    const authRole = request.headers.get('X-Auth-Role');
+    const authHotelId = request.headers.get('X-Auth-HotelId');
+    const isStaffOrAdmin = authRole && (authRole === 'hotel' || authRole === 'platform');
+    const couponFilter = isStaffOrAdmin ? '' : " AND visibility = 'public'";
     const couponsResult = await env.DB.prepare(
-      'SELECT * FROM coupon_templates WHERE hotel_id = ? AND status = \'active\' ORDER BY id ASC'
+      `SELECT * FROM coupon_templates WHERE hotel_id = ? AND status = 'active'${couponFilter} ORDER BY id ASC`
     ).bind(resolved.hotelId).all();
     const coupons = couponsResult.results.map(c => ({
       id: c.coupon_id,
@@ -304,7 +309,8 @@ export async function onRequestGet(context) {
       amount: c.amount,
       condition: c.condition_amount,
       desc: c.description || `满${c.condition_amount}减${c.amount}`,
-      expire: c.expire_days
+      expire: c.expire_days,
+      visibility: c.visibility || 'public'
     }));
 
     // 解析图片 JSON
@@ -520,7 +526,7 @@ export async function onRequestPost(context) {
 
       if (existing) {
         // UPDATE：仅更新提供的字段
-        const fields = { name: 'name', amount: 'amount', condition_amount: 'condition_amount', expire_days: 'expire_days', description: 'description', max_claim_per_user: 'max_claim_per_user', status: 'status' };
+        const fields = { name: 'name', amount: 'amount', condition_amount: 'condition_amount', expire_days: 'expire_days', description: 'description', max_claim_per_user: 'max_claim_per_user', visibility: 'visibility', status: 'status' };
         const updates = [];
         const vals = [];
         for (const [key, col] of Object.entries(fields)) {
@@ -537,7 +543,7 @@ export async function onRequestPost(context) {
         const columns = ['hotel_id', 'coupon_id', 'created_at'];
         const placeholders = ['?', '?', '?'];
         const vals = [hotelId, body.coupon_id, now];
-        const fields = { name: 'name', amount: 'amount', condition_amount: 'condition_amount', expire_days: 'expire_days', description: 'description', max_claim_per_user: 'max_claim_per_user', status: 'status' };
+        const fields = { name: 'name', amount: 'amount', condition_amount: 'condition_amount', expire_days: 'expire_days', description: 'description', max_claim_per_user: 'max_claim_per_user', visibility: 'visibility', status: 'status' };
         for (const [key, col] of Object.entries(fields)) {
           if (body[key] !== undefined) {
             columns.push(col);

@@ -127,6 +127,28 @@
         .tab-item.active { color: #ff6b35; }
         .tab-icon { font-size: 22px; margin-bottom: 1px; display: block; }
 
+        /* ===== 老客召回领券弹窗 ===== */
+        .recall-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
+        .recall-overlay.active { display: flex; }
+        .recall-modal { background: #fff; border-radius: 16px; width: 90%; max-width: 360px; padding: 0; overflow: hidden; animation: recallPop 0.3s ease; }
+        @keyframes recallPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .recall-header { background: linear-gradient(135deg, #ff6b35, #ff8c42); padding: 24px 20px 20px; text-align: center; color: #fff; }
+        .recall-header h3 { font-size: 20px; margin: 0 0 4px; }
+        .recall-header p { font-size: 13px; opacity: 0.9; margin: 0; }
+        .recall-amount { font-size: 42px; font-weight: 800; margin: 8px 0 0; }
+        .recall-amount small { font-size: 18px; font-weight: 400; }
+        .recall-condition { font-size: 12px; opacity: 0.85; }
+        .recall-body { padding: 20px; }
+        .recall-body input { width: 100%; padding: 12px 14px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-size: 15px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        .recall-body input:focus { border-color: #ff6b35; }
+        .recall-claim-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #ff6b35, #ff8c42); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+        .recall-claim-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .recall-close { text-align: center; padding: 10px; font-size: 13px; color: #999; cursor: pointer; }
+        .recall-success { text-align: center; padding: 20px; }
+        .recall-success .check { font-size: 48px; }
+        .recall-success h4 { font-size: 18px; margin: 8px 0; color: #333; }
+        .recall-success p { font-size: 13px; color: #666; }
+
         /* ===== 预订弹窗 ===== */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 200; align-items: flex-end; justify-content: center; }
         .modal-overlay.active { display: flex; }
@@ -561,6 +583,11 @@
             // 从localStorage恢复领券手机号，加载已领取优惠券
             claimPhone = localStorage.getItem('claimPhone') || '';
             if (claimPhone) loadClaimedCoupons(claimPhone);
+            // 检测老客召回参数 ?recall=recall
+            const recallParam = urlParams.get('recall');
+            if (recallParam) {
+                showRecallModal(recallParam);
+            }
         });
 
         // ========== 渲染 ==========
@@ -946,6 +973,78 @@
             if (typeof updateOrderSummary === 'function') updateOrderSummary();
         }
 
+        // ========== 老客召回领券 ==========
+        let recallCouponId = '';
+        function showRecallModal(couponId) {
+            recallCouponId = couponId;
+            // 从 API 获取私密券信息（需要单独请求，因为 config 不返回 private 券）
+            fetch(`/api/coupon?action=recall_info&couponId=${couponId}&hotelId=${currentHotelId}`)
+              .then(r => r.json())
+              .then(data => {
+                if (data.success && data.coupon) {
+                    document.getElementById('recallHotelName').textContent = HOTEL.name;
+                    document.getElementById('recallAmount').textContent = data.coupon.amount;
+                    document.getElementById('recallCondition').textContent = data.coupon.condition > 0 ? `满${data.coupon.condition}元可用` : '无门槛';
+                    document.getElementById('recallOverlay').classList.add('active');
+                } else {
+                    showToast('❌ 该优惠券不存在或已失效');
+                }
+              })
+              .catch(() => showToast('❌ 网络错误'));
+        }
+
+        function closeRecallModal() {
+            document.getElementById('recallOverlay').classList.remove('active');
+        }
+
+        async function claimRecallCoupon() {
+            const phone = document.getElementById('recallPhone').value.replace(/\s/g, '');
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                showToast('❌ 请输入正确的手机号');
+                return;
+            }
+            const btn = document.getElementById('recallClaimBtn');
+            btn.disabled = true;
+            btn.textContent = '领取中...';
+            try {
+                // 先获取私密券信息
+                const infoRes = await fetch(`/api/coupon?action=recall_info&couponId=${recallCouponId}&hotelId=${currentHotelId}`);
+                const infoData = await infoRes.json();
+                if (!infoData.success) { showToast('❌ 优惠券不存在'); return; }
+                const coupon = infoData.coupon;
+
+                const res = await fetch('/api/coupon', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phone,
+                        couponId: recallCouponId,
+                        couponName: coupon.name,
+                        amount: coupon.amount,
+                        condition: coupon.condition,
+                        expireDays: coupon.expire,
+                        hotelId: currentHotelId
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    claimPhone = phone;
+                    localStorage.setItem('claimPhone', phone);
+                    await loadClaimedCoupons(phone);
+                    // 显示成功状态
+                    document.getElementById('recallFormArea').style.display = 'none';
+                    document.getElementById('recallSuccessArea').style.display = 'block';
+                } else {
+                    showToast('❌ ' + (data.message || '领取失败'));
+                }
+            } catch(e) {
+                showToast('❌ 网络错误');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '立即领取';
+            }
+        }
+
         async function claimCoupon(couponId) {
             // 检查是否已有可用的
             if (claimedCoupons.find(cc => cc.id === couponId && !cc.used)) return;
@@ -1286,6 +1385,29 @@
             setTimeout(() => { if (bar.parentElement) bar.style.opacity = '0'; setTimeout(()=>bar.remove(),300); }, 5000);
         }
     </script>
+
+    <!-- ===== 老客召回领券弹窗 ===== -->
+    <div class="recall-overlay" id="recallOverlay">
+      <div class="recall-modal">
+        <div class="recall-header">
+          <h3>🎉 专属老客福利</h3>
+          <p id="recallHotelName"></p>
+          <div class="recall-amount"><small>¥</small><span id="recallAmount">0</span></div>
+          <div class="recall-condition" id="recallCondition"></div>
+        </div>
+        <div class="recall-body" id="recallFormArea">
+          <input type="tel" id="recallPhone" placeholder="请输入手机号" maxlength="11">
+          <button class="recall-claim-btn" id="recallClaimBtn" onclick="claimRecallCoupon()">立即领取</button>
+        </div>
+        <div class="recall-success" id="recallSuccessArea" style="display:none">
+          <div class="check">✅</div>
+          <h4>领取成功</h4>
+          <p>优惠券已放入您的账户，下单时自动抵扣</p>
+          <button class="recall-claim-btn" onclick="closeRecallModal()" style="margin-top:16px;">去订房</button>
+        </div>
+        <div class="recall-close" onclick="closeRecallModal()">暂不领取</div>
+      </div>
+    </div>
 
     <!-- 商家管理入口 -->
     <div style="text-align:center;padding:24px 16px 32px;opacity:0.4;font-size:12px">

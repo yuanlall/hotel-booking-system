@@ -373,6 +373,47 @@
             <div class="cfg-hint" style="margin-top:8px;">提示：填写住客评价内容，会显示在预订页「最新评价」区域</div>
         </div>
 
+        <!-- 老客召回 -->
+        <div class="cfg-section">
+            <div class="cfg-section-title">
+                <span><span class="icon">🎁</span> 老客召回</span>
+                <span style="font-size:11px;color:#52c41a;font-weight:500;margin-left:auto;">仅后台可见</span>
+            </div>
+            <div style="font-size:12px;color:#888;margin-bottom:10px;">设置专属老客优惠券，不在预订页展示，通过分享链接发给沉默客户激活召回</div>
+            <div id="recallCouponArea">
+                <div class="cfg-row">
+                    <div class="cfg-field">
+                        <div class="cfg-label">优惠金额（元）</div>
+                        <input type="number" class="cfg-input" id="recallAmount" value="50" min="1" placeholder="50">
+                    </div>
+                    <div class="cfg-field">
+                        <div class="cfg-label">满减门槛（元）</div>
+                        <input type="number" class="cfg-input" id="recallCondition" value="300" min="0" placeholder="300">
+                    </div>
+                </div>
+                <div class="cfg-row">
+                    <div class="cfg-field">
+                        <div class="cfg-label">有效天数</div>
+                        <input type="number" class="cfg-input" id="recallExpire" value="30" min="1" style="width:80px;" placeholder="30">
+                    </div>
+                    <div class="cfg-field">
+                        <div class="cfg-label">描述</div>
+                        <input type="text" class="cfg-input" id="recallDesc" value="老客专属福利" placeholder="老客专属福利">
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button class="cfg-save-btn" onclick="saveRecallCoupon()" style="flex:1;padding:10px;">💾 保存设置</button>
+                    <button id="recallShareBtn" onclick="copyRecallLink()" style="flex:1;padding:10px;background:#52c41a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:none;">🔗 复制分享链接</button>
+                </div>
+                <div id="recallLinkPreview" style="margin-top:8px;display:none;">
+                    <div style="font-size:11px;color:#999;margin-bottom:4px;">分享链接预览：</div>
+                    <div style="background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;padding:8px 10px;font-size:12px;color:#389e0d;word-break:break-all;" id="recallLinkText"></div>
+                    <div style="font-size:11px;color:#999;margin-top:4px;">💡 发送给久未入住的老客户，他们点击即可领取专属优惠券</div>
+                </div>
+            </div>
+            <div class="cfg-hint" style="margin-top:8px;">该优惠券不出现在预订页，仅通过分享链接领取</div>
+        </div>
+
         <!-- 酒店信息 -->
         <div class="cfg-section">
             <div class="cfg-section-title">
@@ -827,6 +868,7 @@ async function loadConfig() {
             fillHotelForm(data.config.hotel);
             renderRoomCards(data.config.rooms);
             renderCouponCards(data.config.coupons);
+            loadRecallCoupon(data.config.coupons);
             renderPhotoSlots(data.config.hotel.carouselImages, data.config.hotel.galleryImages);
             renderReviewSlots(data.config.hotel.reviews);
             document.getElementById('hotelNameHeader').textContent = data.config.hotel.name + ' · 管理后台';
@@ -1396,6 +1438,90 @@ async function saveReviewConfig() {
         showToast(d.success ? '✅ 评价配置已保存（' + reviews.length + '条）' : '❌ ' + (d.message || '保存失败'));
         if (d.success) loadConfig();
     } catch(e) { showToast('❌ 网络错误'); }
+}
+
+// ===== 老客召回优惠券 =====
+let recallCouponConfig = null; // 缓存当前老客召回券配置
+
+function loadRecallCoupon(coupons) {
+    // 从优惠券列表中找 visibility=private 的作为老客召回券
+    const recall = coupons.find(c => c.visibility === 'private');
+    if (recall) {
+        recallCouponConfig = recall;
+        document.getElementById('recallAmount').value = recall.amount || 50;
+        document.getElementById('recallCondition').value = recall.condition || 300;
+        document.getElementById('recallExpire').value = recall.expire || 30;
+        document.getElementById('recallDesc').value = recall.desc || '老客专属福利';
+        // 显示分享按钮和链接预览
+        showRecallLinkUI();
+    }
+}
+
+function showRecallLinkUI() {
+    document.getElementById('recallShareBtn').style.display = 'block';
+    const slug = configData.hotel?.slug;
+    if (slug && recallCouponConfig) {
+        const link = `${window.location.origin}/?hotel=${slug}&recall=recall`;
+        document.getElementById('recallLinkText').textContent = link;
+        document.getElementById('recallLinkPreview').style.display = 'block';
+    }
+}
+
+async function saveRecallCoupon() {
+    const amount = parseInt(document.getElementById('recallAmount').value) || 50;
+    const condition = parseInt(document.getElementById('recallCondition').value) || 300;
+    const expire = parseInt(document.getElementById('recallExpire').value) || 30;
+    const desc = document.getElementById('recallDesc').value.trim() || '老客专属福利';
+    const name = '老客召回';
+    const couponId = 'recall';
+
+    try {
+        const res = await fetch('/api/config', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                action: 'update_coupon',
+                hotelId: currentAdminHotelId,
+                coupon_id: couponId,
+                name,
+                amount,
+                condition_amount: condition,
+                expire_days: expire,
+                description: desc,
+                visibility: 'private',
+                max_claim_per_user: 1,
+                status: 'active'
+            })
+        });
+        if (res.status === 401) { handleAuthExpired(); return; }
+        const d = await res.json();
+        if (d.success) {
+            recallCouponConfig = { id: couponId, name, amount, condition, expire, desc, visibility: 'private' };
+            showRecallLinkUI();
+            showToast('✅ 老客召回券已保存');
+            loadConfig(); // 刷新配置
+        } else {
+            showToast('❌ ' + (d.message || '保存失败'));
+        }
+    } catch(e) { showToast('❌ 网络错误'); }
+}
+
+function copyRecallLink() {
+    const slug = configData.hotel?.slug;
+    if (!slug) { showToast('❌ 酒店信息未加载'); return; }
+    const link = `${window.location.origin}/?hotel=${slug}&recall=recall`;
+    navigator.clipboard.writeText(link).then(() => {
+        showToast('✅ 分享链接已复制！发给老客户即可领券');
+    }).catch(() => {
+        // fallback
+        const input = document.createElement('input');
+        input.value = link;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        showToast('✅ 分享链接已复制！');
+    });
 }
 
 // ===== 弹窗通用 =====
