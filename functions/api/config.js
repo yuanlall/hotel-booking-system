@@ -296,9 +296,19 @@ export async function onRequestGet(context) {
     }));
 
     // 查优惠券模板（未登录用户只看公开券，登录用户看全部）
-    const authRole = request.headers.get('X-Auth-Role');
-    const authHotelId = request.headers.get('X-Auth-HotelId');
-    const isStaffOrAdmin = authRole && (authRole === 'hotel' || authRole === 'platform');
+    // 注意：GET /api/config 不经过 middleware 鉴权，需自行从 Authorization header 解析角色
+    let isStaffOrAdmin = false;
+    try {
+      const authHeader = request.headers.get('Authorization') || '';
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+      if (token) {
+        const raw = atob(token);
+        const parts = raw.split('|');
+        // 新格式: timestamp|account|role|hotelId|sig, 旧格式: timestamp|account|sig
+        const role = parts.length === 5 ? parts[2] : 'platform';
+        if (role === 'hotel' || role === 'platform') isStaffOrAdmin = true;
+      }
+    } catch(e) {}
     const couponFilter = isStaffOrAdmin ? '' : " AND visibility = 'public'";
     const couponsResult = await env.DB.prepare(
       `SELECT * FROM coupon_templates WHERE hotel_id = ? AND status = 'active'${couponFilter} ORDER BY id ASC`
