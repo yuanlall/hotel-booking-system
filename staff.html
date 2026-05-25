@@ -356,7 +356,7 @@
             <div style="margin-top:12px;">
                 <button class="cfg-save-btn" onclick="savePhotoConfig()" style="width:100%;padding:12px;">💾 保存图片配置</button>
             </div>
-            <div class="cfg-hint" style="margin-top:8px;">提示：输入图片URL地址（支持本地路径如 ./assets/xxx.jpg 或完整URL）</div>
+            <div class="cfg-hint" style="margin-top:8px;">提示：点击「📤 上传」选择本地图片，或直接粘贴图片URL地址</div>
         </div>
 
         <!-- 酒店信息 -->
@@ -1073,21 +1073,23 @@ function renderPhotoSlots(carouselImages, galleryImages) {
 
     carouselEl.innerHTML = carousel.map((url, i) => `
         <div class="cfg-photo-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-            <input type="text" class="cfg-input" data-carousel-idx="${i}" value="${url}" placeholder="图片URL" style="flex:1;">
-            ${url ? `<img src="${url}" style="width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid #eee;">` : ''}
-            <button onclick="removeCarouselSlot(${i})" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;">✕</button>
+            <label class="upload-btn" style="flex-shrink:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;background:#f0f7ff;border:1.5px dashed #1890ff;border-radius:6px;font-size:12px;color:#1890ff;transition:all 0.2s;" onmouseover="this.style.background='#e6f7ff'" onmouseout="this.style.background='#f0f7ff'">📤 上传<input type="file" accept="image/*" onchange="handleImageUpload(this, 'carousel', ${i})" style="display:none;"></label>
+            <input type="text" class="cfg-input" data-carousel-idx="${i}" value="${url}" placeholder="图片URL或直接上传" style="flex:1;">
+            ${url ? `<img src="${url}" style="width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid #eee;" onerror="this.style.display='none'">` : ''}
+            <button onclick="removeCarouselSlot(${i})" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;flex-shrink:0;">✕</button>
         </div>
     `).join('');
-    if (carousel.length === 0) carouselEl.innerHTML = '<div style="color:#999;font-size:12px;padding:4px 0;">暂无轮播图</div>';
+    if (carousel.length === 0) carouselEl.innerHTML = '<div style="color:#999;font-size:12px;padding:4px 0;">暂无轮播图，点击下方按钮添加</div>';
 
     galleryEl.innerHTML = gallery.map((url, i) => `
         <div class="cfg-photo-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-            <input type="text" class="cfg-input" data-gallery-idx="${i}" value="${url}" placeholder="图片URL" style="flex:1;">
-            ${url ? `<img src="${url}" style="width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid #eee;">` : ''}
-            <button onclick="removeGallerySlot(${i})" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;">✕</button>
+            <label class="upload-btn" style="flex-shrink:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;background:#fff7e6;border:1.5px dashed #faad14;border-radius:6px;font-size:12px;color:#ad8800;transition:all 0.2s;" onmouseover="this.style.background='#fffbe6'" onmouseout="this.style.background='#fff7e6'">📤 上传<input type="file" accept="image/*" onchange="handleImageUpload(this, 'gallery', ${i})" style="display:none;"></label>
+            <input type="text" class="cfg-input" data-gallery-idx="${i}" value="${url}" placeholder="图片URL或直接上传" style="flex:1;">
+            ${url ? `<img src="${url}" style="width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid #eee;" onerror="this.style.display='none'">` : ''}
+            <button onclick="removeGallerySlot(${i})" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;flex-shrink:0;">✕</button>
         </div>
     `).join('');
-    if (gallery.length === 0) galleryEl.innerHTML = '<div style="color:#999;font-size:12px;padding:4px 0;">暂无实拍图</div>';
+    if (gallery.length === 0) galleryEl.innerHTML = '<div style="color:#999;font-size:12px;padding:4px 0;">暂无实拍图，点击下方按钮添加</div>';
 
     // 保存当前列表长度用于添加
     window._carouselCount = carousel.length;
@@ -1098,14 +1100,13 @@ function addCarouselSlot() {
     if ((window._carouselCount || 0) >= 4) { showToast('⚠️ 最多4张轮播图'); return; }
     window._carouselCount = (window._carouselCount || 0) + 1;
     const el = document.getElementById('cfgCarouselList');
-    // 清除"暂无"提示
     const hint = el.querySelector('div[style*="color:#999"]');
     if (hint) hint.remove();
     const idx = window._carouselCount - 1;
     const row = document.createElement('div');
     row.className = 'cfg-photo-row';
     row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
-    row.innerHTML = `<input type="text" class="cfg-input" data-carousel-idx="${idx}" value="" placeholder="图片URL" style="flex:1;"><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;">✕</button>`;
+    row.innerHTML = `<label class="upload-btn" style="flex-shrink:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;background:#f0f7ff;border:1.5px dashed #1890ff;border-radius:6px;font-size:12px;color:#1890ff;">📤 上传<input type="file" accept="image/*" onchange="handleImageUpload(this, 'carousel', ${idx})" style="display:none;"></label><input type="text" class="cfg-input" data-carousel-idx="${idx}" value="" placeholder="图片URL或直接上传" style="flex:1;"><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;flex-shrink:0;">✕</button>`;
     el.appendChild(row);
 }
 
@@ -1119,7 +1120,7 @@ function addGallerySlot() {
     const row = document.createElement('div');
     row.className = 'cfg-photo-row';
     row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
-    row.innerHTML = `<input type="text" class="cfg-input" data-gallery-idx="${idx}" value="" placeholder="图片URL" style="flex:1;"><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;">✕</button>`;
+    row.innerHTML = `<label class="upload-btn" style="flex-shrink:0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;background:#fff7e6;border:1.5px dashed #faad14;border-radius:6px;font-size:12px;color:#ad8800;">📤 上传<input type="file" accept="image/*" onchange="handleImageUpload(this, 'gallery', ${idx})" style="display:none;"></label><input type="text" class="cfg-input" data-gallery-idx="${idx}" value="" placeholder="图片URL或直接上传" style="flex:1;"><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4d4f;cursor:pointer;font-size:16px;flex-shrink:0;">✕</button>`;
     el.appendChild(row);
 }
 
@@ -1161,6 +1162,114 @@ async function savePhotoConfig() {
         showToast(d.success ? '✅ 图片配置已保存' : '❌ ' + (d.message || '保存失败'));
         if (d.success) loadConfig();
     } catch(e) { showToast('❌ 网络错误'); }
+}
+
+// ===== 图片上传（压缩+转base64） =====
+// 最大单张图片 300KB（base64后约400KB，D1 TEXT字段可容纳）
+const MAX_IMAGE_SIZE = 300 * 1024;
+
+async function handleImageUpload(input, type, idx) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    
+    // 文件类型校验
+    if (!file.type.startsWith('image/')) {
+        showToast('❌ 请选择图片文件'); return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('❌ 图片不能超过5MB'); return;
+    }
+    
+    try {
+        showToast('⏳ 正在压缩图片...');
+        const dataUrl = await compressImage(file, MAX_IMAGE_SIZE);
+        
+        // 填入对应的输入框
+        const attr = type === 'carousel' ? 'data-carousel-idx' : 'data-gallery-idx';
+        const inp = document.querySelector(`input[${attr}="${idx}"]`);
+        if (inp) {
+            inp.value = dataUrl;
+            // 更新预览图
+            let preview = inp.parentElement.querySelector('img');
+            if (!preview) {
+                preview = document.createElement('img');
+                preview.style.cssText = 'width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid #eee;';
+                inp.parentElement.insertBefore(preview, inp.nextSibling);
+            }
+            preview.src = dataUrl;
+            showToast('✅ 图片已上传（' + Math.round(dataUrl.length / 1024) + 'KB）');
+        }
+    } catch(e) {
+        console.error('Upload error:', e);
+        showToast('❌ 图片处理失败: ' + e.message);
+    }
+    // 清空 file input 以便重复选择同一文件
+    input.value = '';
+}
+
+/**
+ * 压缩图片到目标大小以内，返回 base64 data URL
+ * @param {File} file - 原始文件
+ * @param {number} maxSize - 目标最大字节数
+ * @returns {Promise<string>} base64 data URL
+ */
+function compressImage(file, maxSize) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // 计算缩放尺寸（轮播图宽屏、实拍图方/竖屏）
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 1200; // 长边最大1200px
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round(height * maxDim / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round(width * maxDim / height);
+                        height = maxDim;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // 尝试不同质量直到满足大小要求
+                let quality = 0.8;
+                let dataUrl = canvas.toDataURL('image/jpeg', quality);
+                
+                // 如果还是太大，逐步降低质量
+                while (dataUrl.length > maxSize && quality > 0.1) {
+                    quality -= 0.1;
+                    dataUrl = canvas.toDataURL('image/jpeg', quality);
+                }
+                
+                // 如果降低质量还不够，缩小尺寸
+                if (dataUrl.length > maxSize) {
+                    let scale = 0.8;
+                    while (dataUrl.length > maxSize && scale > 0.3) {
+                        canvas.width = Math.round(width * scale);
+                        canvas.height = Math.round(height * scale);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                        scale -= 0.1;
+                    }
+                }
+                
+                resolve(dataUrl);
+            };
+            img.onerror = function() { reject(new Error('图片加载失败')); };
+            img.src = e.target.result;
+        };
+        reader.onerror = function() { reject(new Error('文件读取失败')); };
+        reader.readAsDataURL(file);
+    });
 }
 
 // ===== 弹窗通用 =====
