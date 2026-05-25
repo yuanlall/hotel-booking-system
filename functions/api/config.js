@@ -149,7 +149,7 @@ export async function onRequestGet(context) {
 
       // 1. hotels 表（含 slug）
       await env.DB.exec(
-        'CREATE TABLE IF NOT EXISTS hotels (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL, address TEXT, phone TEXT, rating REAL DEFAULT 4.5, review_count INTEGER DEFAULT 0, tags TEXT, description TEXT, checkin_time TEXT DEFAULT \'14:00\', checkout_time TEXT DEFAULT \'12:00\', parking TEXT DEFAULT \'免费\', active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)'
+        'CREATE TABLE IF NOT EXISTS hotels (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE NOT NULL, name TEXT NOT NULL, address TEXT, phone TEXT, rating REAL DEFAULT 4.5, review_count INTEGER DEFAULT 0, tags TEXT, description TEXT, checkin_time TEXT DEFAULT \'14:00\', checkout_time TEXT DEFAULT \'12:00\', parking TEXT DEFAULT \'免费\', carousel_images TEXT DEFAULT \'[]\', gallery_images TEXT DEFAULT \'[]\', reviews TEXT DEFAULT \'[]\', active INTEGER DEFAULT 1, created_at TEXT, updated_at TEXT)'
       );
 
       // 2. rooms 表（复合唯一键 hotel_id + room_id）
